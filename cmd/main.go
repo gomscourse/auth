@@ -24,7 +24,7 @@ func (s *server) Create(ctx context.Context, req *desc.CreateRequest) (*desc.Cre
 
 func (s *server) Get(ctx context.Context, req *desc.GetRequest) (*desc.GetResponse, error) {
 	fmt.Printf("get id: %d\n", req.GetId())
-	return &desc.GetResponse{}, nil
+	return &desc.GetResponse{User: &desc.User{Role: desc.Role_ADMIN}}, nil
 }
 
 func (s *server) Update(ctx context.Context, req *desc.UpdateRequest) (*emptypb.Empty, error) {
