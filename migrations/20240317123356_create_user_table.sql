@@ -1,5 +1,5 @@
 -- +goose Up
-create table "user" (
+create table auth_user (
                       id serial primary key,
                       name varchar(50) not null,
                       email varchar(50) not null,
