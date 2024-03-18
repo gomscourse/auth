@@ -105,7 +105,26 @@ func (s *server) Get(ctx context.Context, req *desc.GetRequest) (*desc.GetRespon
 }
 
 func (s *server) Update(ctx context.Context, req *desc.UpdateRequest) (*emptypb.Empty, error) {
-	fmt.Printf("%+v\n", req.GetInfo())
+	info := req.GetInfo()
+	userID := req.GetId()
+
+	buildUpdate := sq.Update("auth_user").
+		PlaceholderFormat(sq.Dollar).
+		Set("name", info.GetName().GetValue()).
+		Set("email", info.GetEmail().GetValue()).
+		Set("updated_at", time.Now()).
+		Where(sq.Eq{"id": userID})
+
+	query, args, err := buildUpdate.ToSql()
+	if err != nil {
+		return &emptypb.Empty{}, status.Errorf(codes.Internal, "failed to build query: %v", err)
+	}
+
+	_, err = s.pool.Exec(ctx, query, args...)
+	if err != nil {
+		return &emptypb.Empty{}, status.Errorf(codes.Internal, "failed to update user: %v", err)
+	}
+
 	return &emptypb.Empty{}, nil
 }
 
