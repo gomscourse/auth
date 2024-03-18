@@ -12,7 +12,7 @@ services:
       - "50052:50051"
     entrypoint: ["/root/entrypoint.sh"]
     profiles:
-      - prod
+      - server
   postgres:
     container_name: postgres
     image: postgres:15.4
@@ -24,3 +24,6 @@ services:
       - "${PG_PORT}:5432"
     volumes:
       - postgres_volume:/var/lib/postgresql/data
+    profiles:
+      - server
+      - local
