@@ -11,6 +11,8 @@ services:
     ports:
       - "50052:50051"
     entrypoint: ["/root/entrypoint.sh"]
+    profiles:
+      - prod
   postgres:
     container_name: postgres
     image: postgres:15.4
