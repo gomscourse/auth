@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gomscourse/auth/internal/config"
 	"github.com/gomscourse/auth/internal/config/env"
@@ -129,7 +128,13 @@ func (s *server) Update(ctx context.Context, req *desc.UpdateRequest) (*emptypb.
 }
 
 func (s *server) Delete(ctx context.Context, req *desc.DeleteRequest) (*emptypb.Empty, error) {
-	fmt.Printf("get id: %d\n", req.GetId())
+	deleteBuilder := sq.Delete("auth_user").PlaceholderFormat(sq.Dollar).Where(sq.Eq{"id": req.GetId()})
+	query, args, err := deleteBuilder.ToSql()
+
+	_, err = s.pool.Exec(ctx, query, args...)
+	if err != nil {
+		return &emptypb.Empty{}, status.Errorf(codes.Internal, "failed to delete user: %v", err)
+	}
 	return &emptypb.Empty{}, nil
 }
 
