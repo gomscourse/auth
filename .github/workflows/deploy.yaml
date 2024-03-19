@@ -10,6 +10,7 @@ env:
   REGISTRY: ${{ vars.REGISTRY }}
   IMAGE_NAME: "auth-server"
   CONTAINER_NAME: "auth-server-container"
+  ENV_FILE: ${{ secrets.ENV_FILE }}
 
 jobs:
   image-build-and-push:
@@ -27,9 +28,12 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
+          touch .env
+          echo "$FILE_ENV" > .env
           TAG_NAME=$(echo $GITHUB_SHA | head -c7)
           docker buildx create --use
           docker buildx build --no-cache --push --tag $REGISTRY/$IMAGE_NAME:$TAG_NAME -f Dockerfile . 
+          rm .env
 
   deploy-image:
     runs-on: ubuntu-latest
