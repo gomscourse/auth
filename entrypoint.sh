@@ -1,5 +1,5 @@
 #!/bin/bash
-source .env
+source /root/.env
 
 # wait for the postgres to be ready
 while ! nc -z postgres 5432; do

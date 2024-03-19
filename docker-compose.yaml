@@ -10,6 +10,8 @@ services:
     ports:
       - "50052:50051"
     entrypoint: ["/root/entrypoint.sh"]
+    volumes:
+      - ${SERVICE_PATH}/.env:/root/.env
     profiles:
       - server
   postgres:
