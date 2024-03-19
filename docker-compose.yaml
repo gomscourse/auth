@@ -6,8 +6,7 @@ volumes:
 services:
   app:
     container_name: app
-    build:
-      context: .
+    image: "${REGISTRY}/${IMAGE_NAME}:${TAG_NAME}"
     ports:
       - "50052:50051"
     entrypoint: ["/root/entrypoint.sh"]
