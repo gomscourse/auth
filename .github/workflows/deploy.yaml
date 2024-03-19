@@ -61,6 +61,7 @@ jobs:
             cd ${{ vars.SERVICE_PATH }}
             
             # create .env
+            touch .env
             echo "$ENV_FILE" > .env
             
             # Login into registry
