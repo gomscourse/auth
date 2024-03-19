@@ -6,8 +6,8 @@ on:
 
 env:
   REGISTRY: ${{ vars.REGISTRY }}
-  IMAGE_NAME: "auth-server"
-  CONTAINER_NAME: "auth-server-container"
+  IMAGE_NAME: "auth-service"
+  CONTAINER_NAME: "auth-service-container"
   ENV_FILE: ${{ secrets.ENV_FILE }}
 
 jobs:
