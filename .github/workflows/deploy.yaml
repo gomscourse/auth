@@ -62,7 +62,7 @@ jobs:
             
             # create .env
             echo "TAG_NAME=$TAG_NAME" > .env
-            echo "$ENV_FILE" > .env
+            echo "$ENV_FILE" >> .env
             
             # Login into registry
             docker login -u ${{ secrets.REGISTRY_USERNAME }} -p ${{ secrets.REGISTRY_PASSWORD }}
