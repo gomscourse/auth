@@ -7,6 +7,7 @@ on:
     branches: [ main, master ]
 
 env:
+  REGISTRY: ${{ secrets.REGISTRY }}
   IMAGE_NAME: "auth-server"
   CONTAINER_NAME: "auth-server-container"
 
