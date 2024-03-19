@@ -54,20 +54,14 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           envs: IMAGE_NAME,REGISTRY,GITHUB_SHA,CONTAINER_NAME, ENV_FILE
           script: |
-            # Print GITHUB_SHA to debug
-            echo "GITHUB_SHA is: $GITHUB_SHA"
-            
             # Set up variables
             TAG_NAME=$(echo $GITHUB_SHA | head -c7)
-            
-            # Print TAG_NAME to debug
-            echo "TAG_NAME is: $TAG_NAME"
             
             # go to project directory
             cd ${{ vars.SERVICE_PATH }}
             
             # create .env
-            touch .env
+            echo "TAG_NAME=$TAG_NAME" > .env
             echo "$ENV_FILE" > .env
             
             # Login into registry
