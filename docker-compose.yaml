@@ -15,7 +15,7 @@ services:
     profiles:
       - server
   postgres:
-    container_name: postgres
+    container_name: auth_pg
     image: postgres:15.4
     environment:
       - "POSTGRES_DB=${PG_DATABASE_NAME}"
