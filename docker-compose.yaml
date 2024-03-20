@@ -8,7 +8,7 @@ services:
     container_name: app
     image: "${REGISTRY}/${IMAGE_NAME}:${TAG_NAME}"
     ports:
-      - "50052:50051"
+      - "${GRPC_PORT_EXTERNAL}:${GRPC_PORT}"
     entrypoint: ["/root/entrypoint.sh"]
     volumes:
       - ${SERVICE_PATH}/.env:/root/.env
