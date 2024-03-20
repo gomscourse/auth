@@ -67,7 +67,6 @@ jobs:
             # Login into registry
             docker login -u ${{ secrets.REGISTRY_USERNAME }} -p ${{ secrets.REGISTRY_PASSWORD }}
             docker compose pull
-            docker logout
             
             # Stop running services
             docker compose --profile server down
@@ -77,3 +76,6 @@ jobs:
             
             # Remove old images
             docker image prune -a -f
+            
+            # Logout registry
+            docker logout
