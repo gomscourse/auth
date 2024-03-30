@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
+	"github.com/gomscourse/auth/internal/model"
 	"github.com/gomscourse/auth/internal/repository"
 	"github.com/gomscourse/auth/internal/repository/user/converter"
-	"github.com/gomscourse/auth/internal/repository/user/model"
-	desc "github.com/gomscourse/auth/pkg/user_v1"
+	repoModel "github.com/gomscourse/auth/internal/repository/user/model"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"time"
@@ -33,8 +33,8 @@ func NewRepository(db *pgxpool.Pool) repository.UserRepository {
 	return &repo{db: db}
 }
 
-func (r *repo) Create(ctx context.Context, info *desc.UserCreateInfo) (int64, error) {
-	password := info.GetPassword()
+func (r *repo) Create(ctx context.Context, info *model.UserCreateInfo) (int64, error) {
+	password := info.Password
 	if password == "" {
 		return 0, errors.New("password can't be empty")
 	}
@@ -44,7 +44,7 @@ func (r *repo) Create(ctx context.Context, info *desc.UserCreateInfo) (int64, er
 	builderInsert := sq.Insert(tableName).
 		PlaceholderFormat(sq.Dollar).
 		Columns(nameColumn, emailColumn, roleColumn).
-		Values(info.GetName(), info.GetEmail(), info.GetRole()).
+		Values(info.Name, info.Email, info.Role).
 		Suffix("RETURNING id")
 
 	query, args, err := builderInsert.ToSql()
@@ -61,7 +61,7 @@ func (r *repo) Create(ctx context.Context, info *desc.UserCreateInfo) (int64, er
 	return userID, nil
 }
 
-func (r *repo) Get(ctx context.Context, id int64) (*desc.User, error) {
+func (r *repo) Get(ctx context.Context, id int64) (*model.User, error) {
 	builderSelect := sq.Select(idColumn, nameColumn, emailColumn, roleColumn, createdAtColumn, updatedAtColumn).
 		From(tableName).
 		PlaceholderFormat(sq.Dollar).
@@ -70,36 +70,36 @@ func (r *repo) Get(ctx context.Context, id int64) (*desc.User, error) {
 
 	query, args, err := builderSelect.ToSql()
 	if err != nil {
-		return &desc.User{}, fmt.Errorf("failed to build query: %w", err)
+		return &model.User{}, fmt.Errorf("failed to build query: %w", err)
 	}
 
 	row := r.db.QueryRow(ctx, query, args...)
 	if err != nil {
-		return &desc.User{}, fmt.Errorf("failed to select user: %w", err)
+		return &model.User{}, fmt.Errorf("failed to select user: %w", err)
 	}
 
-	var user model.User
+	var user repoModel.User
 
 	err = row.Scan(&user.ID, &user.Name, &user.Email, &user.Role, &user.CreatedAt, &user.UpdatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return &desc.User{}, fmt.Errorf("user with id %d not found", id)
+		return &model.User{}, fmt.Errorf("user with id %d not found", id)
 	}
 
 	if err != nil {
-		return &desc.User{}, fmt.Errorf("failed to get user: %w", err)
+		return &model.User{}, fmt.Errorf("failed to get user: %w", err)
 	}
 
 	return converter.ToUserFromRepo(&user), nil
 }
 
-func (r *repo) Update(ctx context.Context, id int64, info *desc.UpdateUserInfo) error {
+func (r *repo) Update(ctx context.Context, info *model.UserUpdateInfo) error {
 
 	buildUpdate := sq.Update(tableName).
 		PlaceholderFormat(sq.Dollar).
-		Set(nameColumn, info.GetName().GetValue()).
-		Set(emailColumn, info.GetEmail().GetValue()).
+		Set(nameColumn, info.Name).
+		Set(emailColumn, info.Email).
 		Set(updatedAtColumn, time.Now()).
-		Where(sq.Eq{idColumn: id})
+		Where(sq.Eq{idColumn: info.ID})
 
 	query, args, err := buildUpdate.ToSql()
 	if err != nil {

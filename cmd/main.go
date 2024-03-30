@@ -4,8 +4,10 @@ import (
 	"context"
 	"github.com/gomscourse/auth/internal/config"
 	"github.com/gomscourse/auth/internal/config/env"
-	"github.com/gomscourse/auth/internal/repository"
-	"github.com/gomscourse/auth/internal/repository/user"
+	"github.com/gomscourse/auth/internal/converter"
+	userRepo "github.com/gomscourse/auth/internal/repository/user"
+	"github.com/gomscourse/auth/internal/service"
+	userService "github.com/gomscourse/auth/internal/service/user"
 	desc "github.com/gomscourse/auth/pkg/user_v1"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"google.golang.org/grpc"
@@ -17,12 +19,12 @@ import (
 
 type server struct {
 	desc.UnimplementedUserV1Server
-	userRepository repository.UserRepository
+	userService service.UserService
 }
 
 func (s *server) Create(ctx context.Context, req *desc.CreateRequest) (*desc.CreateResponse, error) {
 	info := req.GetInfo()
-	userID, err := s.userRepository.Create(ctx, info)
+	userID, err := s.userService.Create(ctx, converter.ToUserCreateInfoFromDesc(info))
 	if err != nil {
 		//return &desc.CreateResponse{}, status.Errorf(codes.InvalidArgument, err.Error())
 		return &desc.CreateResponse{}, err
@@ -33,19 +35,19 @@ func (s *server) Create(ctx context.Context, req *desc.CreateRequest) (*desc.Cre
 }
 
 func (s *server) Get(ctx context.Context, req *desc.GetRequest) (*desc.GetResponse, error) {
-	userObj, err := s.userRepository.Get(ctx, req.GetId())
+	userObj, err := s.userService.Get(ctx, req.GetId())
 	if err != nil {
 		return &desc.GetResponse{}, err
 	}
 
-	return &desc.GetResponse{User: userObj}, nil
+	return &desc.GetResponse{User: converter.ToUserFromService(userObj)}, nil
 }
 
 func (s *server) Update(ctx context.Context, req *desc.UpdateRequest) (*emptypb.Empty, error) {
 	info := req.GetInfo()
 	userID := req.GetId()
 
-	err := s.userRepository.Update(ctx, userID, info)
+	err := s.userService.Update(ctx, converter.ToUserUpdateInfoFromDesc(info, userID))
 	if err != nil {
 		return &emptypb.Empty{}, err
 	}
@@ -54,7 +56,7 @@ func (s *server) Update(ctx context.Context, req *desc.UpdateRequest) (*emptypb.
 }
 
 func (s *server) Delete(ctx context.Context, req *desc.DeleteRequest) (*emptypb.Empty, error) {
-	err := s.userRepository.Delete(ctx, req.GetId())
+	err := s.userService.Delete(ctx, req.GetId())
 	if err != nil {
 		return &emptypb.Empty{}, err
 	}
@@ -94,8 +96,9 @@ func main() {
 
 	s := grpc.NewServer()
 	reflection.Register(s)
-	repo := user.NewRepository(pool)
-	desc.RegisterUserV1Server(s, &server{userRepository: repo})
+	repo := userRepo.NewRepository(pool)
+	serv := userService.NewService(repo)
+	desc.RegisterUserV1Server(s, &server{userService: serv})
 
 	log.Printf("server listening at %v", lis.Addr())
 
