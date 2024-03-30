@@ -15,6 +15,8 @@ get-deps:
 	go get -u google.golang.org/protobuf/cmd/protoc-gen-go
 	go get -u google.golang.org/grpc/cmd/protoc-gen-go-grpc
 
+migrate:
+	bin/goose -dir "migrations" postgres "host=localhost port=54321 dbname=auth user=auth-user password=auth-password sslmode=disable" up -v
 
 generate:
 	make generate-user-api
