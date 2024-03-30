@@ -9,5 +9,5 @@ create table auth_user (
 );
 
 -- +goose Down
-drop table "user";
+drop table auth_user;
 
