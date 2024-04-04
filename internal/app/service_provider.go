@@ -3,6 +3,8 @@ package app
 import (
 	"context"
 	userApi "github.com/gomscourse/auth/internal/api/user"
+	"github.com/gomscourse/auth/internal/client/db"
+	"github.com/gomscourse/auth/internal/client/db/pg"
 	"github.com/gomscourse/auth/internal/closer"
 	"github.com/gomscourse/auth/internal/config"
 	"github.com/gomscourse/auth/internal/config/env"
@@ -10,7 +12,6 @@ import (
 	userRepo "github.com/gomscourse/auth/internal/repository/user"
 	"github.com/gomscourse/auth/internal/service"
 	userService "github.com/gomscourse/auth/internal/service/user"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"log"
 )
 
@@ -18,7 +19,7 @@ type serviceProvider struct {
 	pgConfig   config.PGConfig
 	grpcConfig config.GRPCConfig
 
-	pgPool             *pgxpool.Pool
+	dbClient           db.Client
 	userRepository     repository.UserRepository
 	userService        service.UserService
 	userImplementation *userApi.Implementation
@@ -54,32 +55,29 @@ func (sp *serviceProvider) GRPCConfig() config.GRPCConfig {
 	return sp.grpcConfig
 }
 
-func (sp *serviceProvider) PgPool(ctx context.Context) *pgxpool.Pool {
-	if sp.pgPool == nil {
-		pool, err := pgxpool.Connect(ctx, sp.PgConfig().DSN())
+func (sp *serviceProvider) DbClient(ctx context.Context) db.Client {
+	if sp.dbClient == nil {
+		client, err := pg.New(ctx, sp.PgConfig().DSN())
 		if err != nil {
-			log.Fatalf("failed to load PG pool: %s", err.Error())
+			log.Fatalf("failed to load DB client: %s", err.Error())
 		}
 
-		err = pool.Ping(ctx)
+		err = client.DB().Ping(ctx)
 		if err != nil {
 			log.Fatalf("failed to ping DB: %s", err.Error())
 		}
 
-		closer.Add(func() error {
-			pool.Close()
-			return nil
-		})
+		closer.Add(client.Close)
 
-		sp.pgPool = pool
+		sp.dbClient = client
 	}
 
-	return sp.pgPool
+	return sp.dbClient
 }
 
 func (sp *serviceProvider) UserRepository(ctx context.Context) repository.UserRepository {
 	if sp.userRepository == nil {
-		sp.userRepository = userRepo.NewRepository(sp.PgPool(ctx))
+		sp.userRepository = userRepo.NewRepository(sp.DbClient(ctx))
 	}
 
 	return sp.userRepository
