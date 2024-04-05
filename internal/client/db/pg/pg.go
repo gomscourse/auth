@@ -67,7 +67,7 @@ func (p pg) Close() {
 	p.dbc.Close()
 }
 
-func (p pg) BeginTx(ctx context.Context, txOpts pgx.TxOptions) (pgx.Tx, error) {
+func (p pg) BeginTx(ctx context.Context, txOpts pgx.TxOptions) (db.Tx, error) {
 	return p.dbc.BeginTx(ctx, txOpts)
 }
 
@@ -80,6 +80,6 @@ func logQuery(ctx context.Context, q db.Query, args ...interface{}) {
 	)
 }
 
-func MakeContextTx(ctx context.Context, tx pgx.Tx) context.Context {
+func MakeContextTx(ctx context.Context, tx db.Tx) context.Context {
 	return context.WithValue(ctx, TxKey, tx)
 }

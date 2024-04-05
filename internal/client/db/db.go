@@ -47,7 +47,7 @@ type Pinger interface {
 type DB interface {
 	SQLExecutor
 	Pinger
-	BeginTx(ctx context.Context, txOpts pgx.TxOptions) (pgx.Tx, error)
+	BeginTx(ctx context.Context, txOpts pgx.TxOptions) (Tx, error)
 	Close()
 }
 
@@ -59,7 +59,12 @@ type TxManager interface {
 	ReadCommitted(ctx context.Context, handler Handler) error
 }
 
+type Tx interface {
+	Commit(ctx context.Context) error
+	Rollback(ctx context.Context) error
+}
+
 // Transactor - интерфейс для работы с транзакциями
 type Transactor interface {
-	BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.Tx, error)
+	BeginTx(ctx context.Context, txOptions pgx.TxOptions) (Tx, error)
 }

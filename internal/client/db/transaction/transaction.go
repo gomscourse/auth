@@ -27,7 +27,7 @@ func (m *manager) ReadCommitted(ctx context.Context, handler db.Handler) error {
 // transaction - основная функция, которая выполняет указанный пользователем обработчик в транзакции
 func (m *manager) transaction(ctx context.Context, opts pgx.TxOptions, handler db.Handler) (err error) {
 	// если это вложенная транзакция, пропускаем инициацию новой транзакции и запускаем обработчик
-	tx, ok := ctx.Value(pg.TxKey).(pgx.Tx)
+	tx, ok := ctx.Value(pg.TxKey).(db.Tx)
 	if ok {
 		// в данном случае ошибка возвращенная обработчиком будет записана в именованное возвращаемео занчение (err)
 		// и отложенная функция будет иметь к ней доступ и сможет также закомитить или откатить транзакцию
