@@ -47,5 +47,19 @@ type Pinger interface {
 type DB interface {
 	SQLExecutor
 	Pinger
+	BeginTx(ctx context.Context, txOpts pgx.TxOptions) (pgx.Tx, error)
 	Close()
+}
+
+// Handler - функция, которая выполняется в транзакции
+type Handler func(ctx context.Context) error
+
+// TxManager - менеджер транзакций, который выполняет указанный пользователем обработчик в транзакции
+type TxManager interface {
+	ReadCommitted(ctx context.Context, handler Handler) error
+}
+
+// Transactor - интерфейс для работы с транзакциями
+type Transactor interface {
+	BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.Tx, error)
 }

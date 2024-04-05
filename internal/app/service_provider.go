@@ -5,6 +5,7 @@ import (
 	userApi "github.com/gomscourse/auth/internal/api/user"
 	"github.com/gomscourse/auth/internal/client/db"
 	"github.com/gomscourse/auth/internal/client/db/pg"
+	"github.com/gomscourse/auth/internal/client/db/transaction"
 	"github.com/gomscourse/auth/internal/closer"
 	"github.com/gomscourse/auth/internal/config"
 	"github.com/gomscourse/auth/internal/config/env"
@@ -20,6 +21,7 @@ type serviceProvider struct {
 	grpcConfig config.GRPCConfig
 
 	dbClient           db.Client
+	txManager          db.TxManager
 	userRepository     repository.UserRepository
 	userService        service.UserService
 	userImplementation *userApi.Implementation
@@ -75,6 +77,14 @@ func (sp *serviceProvider) DbClient(ctx context.Context) db.Client {
 	return sp.dbClient
 }
 
+func (sp *serviceProvider) TxManager(ctx context.Context) db.TxManager {
+	if sp.txManager == nil {
+		sp.txManager = transaction.NewTransactionManager(sp.DbClient(ctx).DB())
+	}
+
+	return sp.txManager
+}
+
 func (sp *serviceProvider) UserRepository(ctx context.Context) repository.UserRepository {
 	if sp.userRepository == nil {
 		sp.userRepository = userRepo.NewRepository(sp.DbClient(ctx))
@@ -85,7 +95,7 @@ func (sp *serviceProvider) UserRepository(ctx context.Context) repository.UserRe
 
 func (sp *serviceProvider) UserService(ctx context.Context) service.UserService {
 	if sp.userService == nil {
-		sp.userService = userService.NewService(sp.UserRepository(ctx))
+		sp.userService = userService.NewService(sp.UserRepository(ctx), sp.TxManager(ctx))
 	}
 
 	return sp.userService

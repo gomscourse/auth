@@ -16,6 +16,8 @@ type pg struct {
 	dbc *pgxpool.Pool
 }
 
+const TxKey = "tx"
+
 func (p pg) ScanOneContext(ctx context.Context, dest interface{}, q db.Query, args ...interface{}) error {
 	logQuery(ctx, q, args...)
 
@@ -65,6 +67,10 @@ func (p pg) Close() {
 	p.dbc.Close()
 }
 
+func (p pg) BeginTx(ctx context.Context, txOpts pgx.TxOptions) (pgx.Tx, error) {
+	return p.dbc.BeginTx(ctx, txOpts)
+}
+
 func logQuery(ctx context.Context, q db.Query, args ...interface{}) {
 	prettyQuery := prettier.Pretty(q.QueryRow, prettier.PlaceholderDollar, args...)
 	log.Println(
@@ -72,4 +78,8 @@ func logQuery(ctx context.Context, q db.Query, args ...interface{}) {
 		fmt.Sprintf("sql: %s", q.Name),
 		fmt.Sprintf("query: %s", prettyQuery),
 	)
+}
+
+func MakeContextTx(ctx context.Context, tx pgx.Tx) context.Context {
+	return context.WithValue(ctx, TxKey, tx)
 }
