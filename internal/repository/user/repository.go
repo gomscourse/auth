@@ -25,6 +25,15 @@ const (
 	updatedAtColumn = "updated_at"
 )
 
+const (
+	logTableName      = "log"
+	logActionColumn   = "action"
+	logModelColumn    = "model"
+	logModelIdColumn  = "model_id"
+	logQueryColumn    = "query"
+	logQueryRowColumn = "query_row"
+)
+
 type repo struct {
 	db db.Client
 }
@@ -33,10 +42,10 @@ func NewRepository(db db.Client) repository.UserRepository {
 	return &repo{db: db}
 }
 
-func (r *repo) Create(ctx context.Context, info *model.UserCreateInfo) (int64, error) {
+func (r *repo) Create(ctx context.Context, info *model.UserCreateInfo) (int64, *db.Query, error) {
 	password := info.Password
 	if password == "" {
-		return 0, errors.New("password can't be empty")
+		return 0, nil, errors.New("password can't be empty")
 	}
 
 	// TODO: generate password hash
@@ -49,7 +58,7 @@ func (r *repo) Create(ctx context.Context, info *model.UserCreateInfo) (int64, e
 
 	query, args, err := builderInsert.ToSql()
 	if err != nil {
-		return 0, fmt.Errorf("failed to build query: %w", err)
+		return 0, nil, fmt.Errorf("failed to build query: %w", err)
 	}
 
 	q := db.Query{
@@ -60,13 +69,13 @@ func (r *repo) Create(ctx context.Context, info *model.UserCreateInfo) (int64, e
 	var userID int64
 	err = r.db.DB().QueryRowContext(ctx, q, args...).Scan(&userID)
 	if err != nil {
-		return 0, fmt.Errorf("failed to insert user: %w", err)
+		return 0, nil, fmt.Errorf("failed to insert user: %w", err)
 	}
 
-	return userID, nil
+	return userID, &q, nil
 }
 
-func (r *repo) Get(ctx context.Context, id int64) (*model.User, error) {
+func (r *repo) Get(ctx context.Context, id int64) (*model.User, *db.Query, error) {
 	builderSelect := sq.Select(idColumn, nameColumn, emailColumn, roleColumn, createdAtColumn, updatedAtColumn).
 		From(tableName).
 		PlaceholderFormat(sq.Dollar).
@@ -75,7 +84,7 @@ func (r *repo) Get(ctx context.Context, id int64) (*model.User, error) {
 
 	query, args, err := builderSelect.ToSql()
 	if err != nil {
-		return &model.User{}, fmt.Errorf("failed to build query: %w", err)
+		return &model.User{}, nil, fmt.Errorf("failed to build query: %w", err)
 	}
 
 	q := db.Query{
@@ -87,17 +96,17 @@ func (r *repo) Get(ctx context.Context, id int64) (*model.User, error) {
 	err = r.db.DB().ScanOneContext(ctx, &user, q, args...)
 
 	if errors.Is(err, pgx.ErrNoRows) {
-		return &model.User{}, fmt.Errorf("user with id %d not found", id)
+		return &model.User{}, nil, fmt.Errorf("user with id %d not found", id)
 	}
 
 	if err != nil {
-		return &model.User{}, fmt.Errorf("failed to get user: %w", err)
+		return &model.User{}, nil, fmt.Errorf("failed to get user: %w", err)
 	}
 
-	return converter.ToUserFromRepo(&user), nil
+	return converter.ToUserFromRepo(&user), &q, nil
 }
 
-func (r *repo) Update(ctx context.Context, info *model.UserUpdateInfo) error {
+func (r *repo) Update(ctx context.Context, info *model.UserUpdateInfo) (*db.Query, error) {
 
 	buildUpdate := sq.Update(tableName).
 		PlaceholderFormat(sq.Dollar).
@@ -108,7 +117,7 @@ func (r *repo) Update(ctx context.Context, info *model.UserUpdateInfo) error {
 
 	query, args, err := buildUpdate.ToSql()
 	if err != nil {
-		return fmt.Errorf("failed to build query: %w", err)
+		return nil, fmt.Errorf("failed to build query: %w", err)
 	}
 
 	q := db.Query{
@@ -118,13 +127,13 @@ func (r *repo) Update(ctx context.Context, info *model.UserUpdateInfo) error {
 
 	_, err = r.db.DB().ExecContext(ctx, q, args...)
 	if err != nil {
-		return fmt.Errorf("failed to update user: %w", err)
+		return nil, fmt.Errorf("failed to update user: %w", err)
 	}
 
-	return nil
+	return &q, nil
 }
 
-func (r *repo) Delete(ctx context.Context, id int64) error {
+func (r *repo) Delete(ctx context.Context, id int64) (*db.Query, error) {
 	deleteBuilder := sq.Delete(tableName).PlaceholderFormat(sq.Dollar).Where(sq.Eq{idColumn: id})
 	query, args, err := deleteBuilder.ToSql()
 
@@ -135,7 +144,31 @@ func (r *repo) Delete(ctx context.Context, id int64) error {
 
 	_, err = r.db.DB().ExecContext(ctx, q, args...)
 	if err != nil {
-		return fmt.Errorf("failed to delete user: %w", err)
+		return nil, fmt.Errorf("failed to delete user: %w", err)
 	}
+	return &q, nil
+}
+
+func (r *repo) CreateLog(ctx context.Context, action, model string, modelId int64, loggedQ *db.Query) error {
+	builderInsert := sq.Insert(logTableName).
+		PlaceholderFormat(sq.Dollar).
+		Columns(logActionColumn, logModelColumn, logModelIdColumn, logQueryColumn, logQueryRowColumn).
+		Values(action, model, modelId, loggedQ.Name, loggedQ.QueryRow)
+
+	query, args, err := builderInsert.ToSql()
+	if err != nil {
+		return fmt.Errorf("failed to build query: %w", err)
+	}
+
+	q := db.Query{
+		Name:     "create_log_query",
+		QueryRow: query,
+	}
+
+	_, err = r.db.DB().ExecContext(ctx, q, args...)
+	if err != nil {
+		return fmt.Errorf("failed to insert log: %w", err)
+	}
+
 	return nil
 }
