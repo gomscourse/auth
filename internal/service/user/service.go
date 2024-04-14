@@ -1,9 +1,9 @@
 package user
 
 import (
-	"github.com/gomscourse/auth/internal/client/db"
 	"github.com/gomscourse/auth/internal/repository"
 	"github.com/gomscourse/auth/internal/service"
+	"github.com/gomscourse/common/pkg/db"
 )
 
 type serv struct {

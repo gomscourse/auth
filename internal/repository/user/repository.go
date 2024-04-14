@@ -5,11 +5,11 @@ import (
 	"errors"
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
-	"github.com/gomscourse/auth/internal/client/db"
 	"github.com/gomscourse/auth/internal/model"
 	"github.com/gomscourse/auth/internal/repository"
 	"github.com/gomscourse/auth/internal/repository/user/converter"
 	repoModel "github.com/gomscourse/auth/internal/repository/user/model"
+	"github.com/gomscourse/common/pkg/db"
 	"github.com/jackc/pgx/v4"
 	"time"
 )

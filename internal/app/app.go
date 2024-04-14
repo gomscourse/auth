@@ -2,9 +2,9 @@ package app
 
 import (
 	"context"
-	"github.com/gomscourse/auth/internal/closer"
 	"github.com/gomscourse/auth/internal/config"
 	desc "github.com/gomscourse/auth/pkg/user_v1"
+	"github.com/gomscourse/common/pkg/closer"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"log"

@@ -3,16 +3,16 @@ package app
 import (
 	"context"
 	userApi "github.com/gomscourse/auth/internal/api/user"
-	"github.com/gomscourse/auth/internal/client/db"
-	"github.com/gomscourse/auth/internal/client/db/pg"
-	"github.com/gomscourse/auth/internal/client/db/transaction"
-	"github.com/gomscourse/auth/internal/closer"
 	"github.com/gomscourse/auth/internal/config"
 	"github.com/gomscourse/auth/internal/config/env"
 	"github.com/gomscourse/auth/internal/repository"
 	userRepo "github.com/gomscourse/auth/internal/repository/user"
 	"github.com/gomscourse/auth/internal/service"
 	userService "github.com/gomscourse/auth/internal/service/user"
+	"github.com/gomscourse/common/pkg/closer"
+	"github.com/gomscourse/common/pkg/db"
+	"github.com/gomscourse/common/pkg/db/pg"
+	"github.com/gomscourse/common/pkg/db/transaction"
 	"log"
 )
 

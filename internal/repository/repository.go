@@ -2,8 +2,8 @@ package repository
 
 import (
 	"context"
-	"github.com/gomscourse/auth/internal/client/db"
 	"github.com/gomscourse/auth/internal/model"
+	"github.com/gomscourse/common/pkg/db"
 )
 
 type UserRepository interface {
