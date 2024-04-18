@@ -12,7 +12,7 @@ func (i *Implementation) Create(ctx context.Context, req *desc.CreateRequest) (*
 	userID, err := i.userService.Create(ctx, converter.ToUserCreateInfoFromDesc(info))
 	if err != nil {
 		//return &desc.CreateResponse{}, status.Errorf(codes.InvalidArgument, err.Error())
-		return &desc.CreateResponse{}, err
+		return nil, err
 	}
 
 	log.Printf("inserted user with id: %d", userID)
