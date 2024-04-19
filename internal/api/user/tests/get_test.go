@@ -2,66 +2,74 @@ package tests
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"github.com/brianvoe/gofakeit"
 	"github.com/gojuno/minimock/v3"
-	"github.com/gomscourse/auth/internal/api/user"
+	userApi "github.com/gomscourse/auth/internal/api/user"
 	"github.com/gomscourse/auth/internal/model"
 	"github.com/gomscourse/auth/internal/service"
 	"github.com/gomscourse/auth/internal/service/mocks"
 	desc "github.com/gomscourse/auth/pkg/user_v1"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"testing"
+	"time"
 )
 
-func TestCreate(t *testing.T) {
+func TestGet(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
 		ctx context.Context
-		req *desc.CreateRequest
+		req *desc.GetRequest
 	}
 
 	var (
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
 
-		name            = gofakeit.Name()
-		email           = gofakeit.Email()
-		password        = gofakeit.Email()
-		passwordConfirm = password
-		role            = gofakeit.Int32()
-
-		id           = gofakeit.Int64()
-		serviceError = errors.New("service error")
-
-		req = &desc.CreateRequest{
-			Info: &desc.UserCreateInfo{
-				Name:            name,
-				Email:           email,
-				Password:        password,
-				PasswordConfirm: passwordConfirm,
-				Role:            desc.Role(role),
-			},
+		id      = gofakeit.Int64()
+		name    = gofakeit.Name()
+		email   = gofakeit.Email()
+		role    = gofakeit.Int32()
+		created = time.Now()
+		updated = sql.NullTime{
+			Time:  created,
+			Valid: true,
 		}
 
-		res = &desc.CreateResponse{
+		serviceError = errors.New("service error")
+
+		req = &desc.GetRequest{
 			Id: id,
 		}
 
-		info = &model.UserCreateInfo{
-			Name:            name,
-			Email:           email,
-			Password:        password,
-			PasswordConfirm: passwordConfirm,
-			Role:            role,
+		res = &desc.GetResponse{
+			User: &desc.User{
+				Id:        id,
+				Name:      name,
+				Email:     email,
+				Role:      desc.Role(role),
+				CreatedAt: timestamppb.New(created),
+				UpdatedAt: timestamppb.New(updated.Time),
+			},
+		}
+
+		user = &model.User{
+			ID:        id,
+			Name:      name,
+			Email:     email,
+			Role:      role,
+			CreatedAt: created,
+			UpdatedAt: updated,
 		}
 	)
 
 	tests := []struct {
 		name            string
 		args            args
-		want            *desc.CreateResponse
+		want            *desc.GetResponse
 		err             error
 		userServiceMock userServiceMockFunc
 	}{
@@ -75,7 +83,7 @@ func TestCreate(t *testing.T) {
 			err:  nil,
 			userServiceMock: func(mc *minimock.Controller) service.UserService {
 				mock := mocks.NewUserServiceMock(mc)
-				mock.CreateMock.Expect(ctx, info).Return(id, nil)
+				mock.GetMock.Expect(ctx, id).Return(user, nil)
 				return mock
 			},
 		},
@@ -89,7 +97,7 @@ func TestCreate(t *testing.T) {
 			err:  serviceError,
 			userServiceMock: func(mc *minimock.Controller) service.UserService {
 				mock := mocks.NewUserServiceMock(mc)
-				mock.CreateMock.Expect(ctx, info).Return(0, serviceError)
+				mock.GetMock.Expect(ctx, id).Return(nil, serviceError)
 				return mock
 			},
 		},
@@ -102,9 +110,9 @@ func TestCreate(t *testing.T) {
 				t.Parallel()
 
 				userServiceMock := tt.userServiceMock(mc)
-				api := user.NewImplementation(userServiceMock)
+				api := userApi.NewImplementation(userServiceMock)
 
-				result, err := api.Create(tt.args.ctx, tt.args.req)
+				result, err := api.Get(tt.args.ctx, tt.args.req)
 				require.Equal(t, tt.err, err)
 				require.Equal(t, tt.want, result)
 			},

@@ -13,8 +13,8 @@ func (i *Implementation) Update(ctx context.Context, req *desc.UpdateRequest) (*
 
 	err := i.userService.Update(ctx, converter.ToUserUpdateInfoFromDesc(info, userID))
 	if err != nil {
-		return &emptypb.Empty{}, err
+		return nil, err
 	}
 
-	return &emptypb.Empty{}, nil
+	return nil, nil
 }

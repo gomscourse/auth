@@ -6,62 +6,38 @@ import (
 	"github.com/brianvoe/gofakeit"
 	"github.com/gojuno/minimock/v3"
 	"github.com/gomscourse/auth/internal/api/user"
-	"github.com/gomscourse/auth/internal/model"
 	"github.com/gomscourse/auth/internal/service"
 	"github.com/gomscourse/auth/internal/service/mocks"
 	desc "github.com/gomscourse/auth/pkg/user_v1"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"testing"
 )
 
-func TestCreate(t *testing.T) {
+func TestDelete(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
 		ctx context.Context
-		req *desc.CreateRequest
+		req *desc.DeleteRequest
 	}
 
 	var (
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
 
-		name            = gofakeit.Name()
-		email           = gofakeit.Email()
-		password        = gofakeit.Email()
-		passwordConfirm = password
-		role            = gofakeit.Int32()
-
 		id           = gofakeit.Int64()
 		serviceError = errors.New("service error")
 
-		req = &desc.CreateRequest{
-			Info: &desc.UserCreateInfo{
-				Name:            name,
-				Email:           email,
-				Password:        password,
-				PasswordConfirm: passwordConfirm,
-				Role:            desc.Role(role),
-			},
-		}
-
-		res = &desc.CreateResponse{
+		req = &desc.DeleteRequest{
 			Id: id,
-		}
-
-		info = &model.UserCreateInfo{
-			Name:            name,
-			Email:           email,
-			Password:        password,
-			PasswordConfirm: passwordConfirm,
-			Role:            role,
 		}
 	)
 
 	tests := []struct {
 		name            string
 		args            args
-		want            *desc.CreateResponse
+		want            *emptypb.Empty
 		err             error
 		userServiceMock userServiceMockFunc
 	}{
@@ -71,11 +47,11 @@ func TestCreate(t *testing.T) {
 				ctx: ctx,
 				req: req,
 			},
-			want: res,
+			want: nil,
 			err:  nil,
 			userServiceMock: func(mc *minimock.Controller) service.UserService {
 				mock := mocks.NewUserServiceMock(mc)
-				mock.CreateMock.Expect(ctx, info).Return(id, nil)
+				mock.DeleteMock.Expect(ctx, id).Return(nil)
 				return mock
 			},
 		},
@@ -89,7 +65,7 @@ func TestCreate(t *testing.T) {
 			err:  serviceError,
 			userServiceMock: func(mc *minimock.Controller) service.UserService {
 				mock := mocks.NewUserServiceMock(mc)
-				mock.CreateMock.Expect(ctx, info).Return(0, serviceError)
+				mock.DeleteMock.Expect(ctx, id).Return(serviceError)
 				return mock
 			},
 		},
@@ -104,7 +80,7 @@ func TestCreate(t *testing.T) {
 				userServiceMock := tt.userServiceMock(mc)
 				api := user.NewImplementation(userServiceMock)
 
-				result, err := api.Create(tt.args.ctx, tt.args.req)
+				result, err := api.Delete(tt.args.ctx, tt.args.req)
 				require.Equal(t, tt.err, err)
 				require.Equal(t, tt.want, result)
 			},
