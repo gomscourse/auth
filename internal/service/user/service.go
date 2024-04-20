@@ -14,3 +14,18 @@ type serv struct {
 func NewService(userRepository repository.UserRepository, txManager db.TxManager) service.UserService {
 	return &serv{userRepository: userRepository, txManager: txManager}
 }
+
+func NewTestService(deps ...interface{}) service.UserService {
+	srv := serv{}
+
+	for _, v := range deps {
+		switch s := v.(type) {
+		case repository.UserRepository:
+			srv.userRepository = s
+		case db.TxManager:
+			srv.txManager = s
+		}
+	}
+
+	return &srv
+}
