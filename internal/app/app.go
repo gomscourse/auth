@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"github.com/gomscourse/auth/internal/config"
+	"github.com/gomscourse/auth/internal/interceptor"
 	desc "github.com/gomscourse/auth/pkg/user_v1"
 	"github.com/gomscourse/common/pkg/closer"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -97,7 +98,10 @@ func (app *App) initServiceProvider(_ context.Context) error {
 }
 
 func (app *App) initGRPCServer(ctx context.Context) error {
-	app.grpcServer = grpc.NewServer()
+	app.grpcServer = grpc.NewServer(
+		grpc.Creds(insecure.NewCredentials()),
+		grpc.UnaryInterceptor(interceptor.ValidateInterceptor),
+	)
 
 	reflection.Register(app.grpcServer)
 

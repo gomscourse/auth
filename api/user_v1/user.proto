@@ -6,6 +6,7 @@ import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 import "google/api/annotations.proto";
+import "validate/validate.proto";
 
 option go_package = "github.com/gomscourse/auth/pkg/user_v1;user_v1";
 
@@ -42,8 +43,8 @@ enum Role {
 }
 
 message UserCreateInfo {
-  string name = 1;
-  string email = 2;
+  string name = 1 [(validate.rules).string = {min_len: 3, max_len: 50}];
+  string email = 2 [(validate.rules).string.email = true];
   string password = 3;
   string password_confirm = 4;
   Role role = 5;
