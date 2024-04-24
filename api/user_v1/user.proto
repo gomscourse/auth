@@ -7,10 +7,29 @@ import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 import "google/api/annotations.proto";
 import "validate/validate.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "github.com/gomscourse/auth/pkg/user_v1;user_v1";
 
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    title: "User API"
+    version: "1.0.0"
+    contact: {
+      name: "Miroslav Toykin"
+      email: "miroslavtoykin@gmail.com"
+    };
+  };
+
+  host: "localhost:8091",
+  schemes: HTTP,
+  schemes: HTTPS,
+  consumes: "application/json",
+  produces: "application/json",
+};
+
 service UserV1 {
+  // Создать пользователя
   rpc Create(CreateRequest) returns (CreateResponse) {
     option (google.api.http) = {
       post: "/user/v1",
@@ -18,18 +37,22 @@ service UserV1 {
     };
   };
 
+  // Получить пользователя по ID
   rpc Get(GetRequest) returns (GetResponse) {
     option (google.api.http) = {
       get: "/user/v1"
     };
   };
 
+  // Обновить пользователя
   rpc Update(UpdateRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {
       patch: "/user/v1",
       body: "*"
     };
   };
+
+  // Удалить пользователя
   rpc Delete(DeleteRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {
       delete: "/user/v1",
