@@ -11,18 +11,20 @@ import (
 	repoModel "github.com/gomscourse/auth/internal/repository/user/model"
 	"github.com/gomscourse/common/pkg/db"
 	"github.com/jackc/pgx/v4"
+	"golang.org/x/crypto/bcrypt"
 	"time"
 )
 
 const (
 	tableName = "auth_user"
 
-	idColumn        = "id"
-	nameColumn      = "name"
-	emailColumn     = "email"
-	roleColumn      = "role"
-	createdAtColumn = "created_at"
-	updatedAtColumn = "updated_at"
+	idColumn           = "id"
+	usernameColumn     = "username"
+	passwordHashColumn = "password_hash"
+	emailColumn        = "email"
+	roleColumn         = "role"
+	createdAtColumn    = "created_at"
+	updatedAtColumn    = "updated_at"
 )
 
 const (
@@ -49,11 +51,15 @@ func (r *repo) Create(ctx context.Context, info *model.UserCreateInfo) (int64, *
 	}
 
 	// TODO: generate password hash
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return 0, nil, fmt.Errorf("failed to generate password hash: %w", err)
+	}
 
 	builderInsert := sq.Insert(tableName).
 		PlaceholderFormat(sq.Dollar).
-		Columns(nameColumn, emailColumn, roleColumn).
-		Values(info.Name, info.Email, info.Role).
+		Columns(usernameColumn, passwordHashColumn, emailColumn, roleColumn).
+		Values(info.Name, string(passwordHash), info.Email, info.Role).
 		Suffix("RETURNING id")
 
 	query, args, err := builderInsert.ToSql()
@@ -76,7 +82,7 @@ func (r *repo) Create(ctx context.Context, info *model.UserCreateInfo) (int64, *
 }
 
 func (r *repo) Get(ctx context.Context, id int64) (*model.User, *db.Query, error) {
-	builderSelect := sq.Select(idColumn, nameColumn, emailColumn, roleColumn, createdAtColumn, updatedAtColumn).
+	builderSelect := sq.Select(idColumn, usernameColumn, emailColumn, roleColumn, createdAtColumn, updatedAtColumn).
 		From(tableName).
 		PlaceholderFormat(sq.Dollar).
 		Where(sq.Eq{idColumn: id}).
@@ -110,7 +116,7 @@ func (r *repo) Update(ctx context.Context, info *model.UserUpdateInfo) (*db.Quer
 
 	buildUpdate := sq.Update(tableName).
 		PlaceholderFormat(sq.Dollar).
-		Set(nameColumn, info.Name).
+		Set(usernameColumn, info.Name).
 		Set(emailColumn, info.Email).
 		Set(updatedAtColumn, time.Now()).
 		Where(sq.Eq{idColumn: info.ID})

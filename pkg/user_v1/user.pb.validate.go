@@ -59,7 +59,7 @@ func (m *UserCreateInfo) validate(all bool) error {
 
 	if l := utf8.RuneCountInString(m.GetName()); l < 3 || l > 50 {
 		err := UserCreateInfoValidationError{
-			field:  "Name",
+			field:  "Username",
 			reason: "value length must be between 3 and 50 runes, inclusive",
 		}
 		if !all {
@@ -237,7 +237,7 @@ func (m *User) validate(all bool) error {
 
 	// no validation rules for Id
 
-	// no validation rules for Name
+	// no validation rules for Username
 
 	// no validation rules for Email
 
@@ -405,7 +405,7 @@ func (m *UpdateUserInfo) validate(all bool) error {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, UpdateUserInfoValidationError{
-					field:  "Name",
+					field:  "Username",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -413,7 +413,7 @@ func (m *UpdateUserInfo) validate(all bool) error {
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
 				errors = append(errors, UpdateUserInfoValidationError{
-					field:  "Name",
+					field:  "Username",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -422,7 +422,7 @@ func (m *UpdateUserInfo) validate(all bool) error {
 	} else if v, ok := interface{}(m.GetName()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return UpdateUserInfoValidationError{
-				field:  "Name",
+				field:  "Username",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
