@@ -37,6 +37,10 @@ func (s *serv) Check(ctx context.Context, endpointAddress string) error {
 		return errors.New("failed to get access rules")
 	}
 
+	if len(accessRules) == 0 {
+		return nil
+	}
+
 	accessGranted := false
 
 	for _, rule := range accessRules {
