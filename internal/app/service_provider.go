@@ -2,12 +2,16 @@ package app
 
 import (
 	"context"
+	accessApi "github.com/gomscourse/auth/internal/api/access"
+	authApi "github.com/gomscourse/auth/internal/api/auth"
 	userApi "github.com/gomscourse/auth/internal/api/user"
 	"github.com/gomscourse/auth/internal/config"
 	"github.com/gomscourse/auth/internal/config/env"
 	"github.com/gomscourse/auth/internal/repository"
 	userRepo "github.com/gomscourse/auth/internal/repository/user"
 	"github.com/gomscourse/auth/internal/service"
+	accessService "github.com/gomscourse/auth/internal/service/access"
+	authService "github.com/gomscourse/auth/internal/service/auth"
 	userService "github.com/gomscourse/auth/internal/service/user"
 	"github.com/gomscourse/common/pkg/closer"
 	"github.com/gomscourse/common/pkg/db"
@@ -21,12 +25,17 @@ type serviceProvider struct {
 	grpcConfig    config.GRPCConfig
 	httpConfig    config.HTTPConfig
 	swaggerConfig config.HTTPConfig
+	jwtConfig     config.JWTConfig
 
-	dbClient           db.Client
-	txManager          db.TxManager
-	userRepository     repository.UserRepository
-	userService        service.UserService
-	userImplementation *userApi.Implementation
+	dbClient             db.Client
+	txManager            db.TxManager
+	userRepository       repository.UserRepository
+	userService          service.UserService
+	authService          service.AuthService
+	accessService        service.AccessService
+	userImplementation   *userApi.Implementation
+	authImplementation   *authApi.Implementation
+	accessImplementation *accessApi.Implementation
 }
 
 func newServiceProvider() *serviceProvider {
@@ -72,7 +81,7 @@ func (sp *serviceProvider) HTTPConfig() config.HTTPConfig {
 	return sp.httpConfig
 }
 
-func (sp *serviceProvider) SwaggerConfig() config.HTTPConfig {
+func (sp *serviceProvider) SwaggerConfig() config.SwaggerConfig {
 	if sp.swaggerConfig == nil {
 		cfg, err := env.NewSwaggerConfig()
 		if err != nil {
@@ -83,6 +92,19 @@ func (sp *serviceProvider) SwaggerConfig() config.HTTPConfig {
 	}
 
 	return sp.swaggerConfig
+}
+
+func (sp *serviceProvider) JWTConfig() config.JWTConfig {
+	if sp.jwtConfig == nil {
+		cfg, err := env.NewJWTConfig()
+		if err != nil {
+			log.Fatalf("failed to load JWT config: %s", err.Error())
+		}
+
+		sp.jwtConfig = cfg
+	}
+
+	return sp.jwtConfig
 }
 
 func (sp *serviceProvider) DbClient(ctx context.Context) db.Client {
@@ -129,10 +151,42 @@ func (sp *serviceProvider) UserService(ctx context.Context) service.UserService 
 	return sp.userService
 }
 
+func (sp *serviceProvider) AuthService(ctx context.Context) service.AuthService {
+	if sp.authService == nil {
+		sp.authService = authService.NewService(sp.UserRepository(ctx), sp.JWTConfig())
+	}
+
+	return sp.authService
+}
+
+func (sp *serviceProvider) AccessService(ctx context.Context) service.AccessService {
+	if sp.accessService == nil {
+		sp.accessService = accessService.NewService(sp.UserRepository(ctx), sp.JWTConfig())
+	}
+
+	return sp.accessService
+}
+
 func (sp *serviceProvider) UserImplementation(ctx context.Context) *userApi.Implementation {
 	if sp.userImplementation == nil {
 		sp.userImplementation = userApi.NewImplementation(sp.UserService(ctx))
 	}
 
 	return sp.userImplementation
+}
+
+func (sp *serviceProvider) AuthImplementation(ctx context.Context) *authApi.Implementation {
+	if sp.authImplementation == nil {
+		sp.authImplementation = authApi.NewImplementation(sp.AuthService(ctx))
+	}
+
+	return sp.authImplementation
+}
+
+func (sp *serviceProvider) AccessImplementation(ctx context.Context) *accessApi.Implementation {
+	if sp.accessImplementation == nil {
+		sp.accessImplementation = accessApi.NewImplementation(sp.AccessService(ctx))
+	}
+
+	return sp.accessImplementation
 }

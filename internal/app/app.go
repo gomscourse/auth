@@ -4,7 +4,9 @@ import (
 	"context"
 	"github.com/gomscourse/auth/internal/config"
 	"github.com/gomscourse/auth/internal/interceptor"
-	desc "github.com/gomscourse/auth/pkg/user_v1"
+	descAccess "github.com/gomscourse/auth/pkg/access_v1"
+	descAuth "github.com/gomscourse/auth/pkg/auth_v1"
+	descUser "github.com/gomscourse/auth/pkg/user_v1"
 	_ "github.com/gomscourse/auth/statik"
 	"github.com/gomscourse/common/pkg/closer"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -120,7 +122,9 @@ func (app *App) initGRPCServer(ctx context.Context) error {
 
 	reflection.Register(app.grpcServer)
 
-	desc.RegisterUserV1Server(app.grpcServer, app.serviceProvider.UserImplementation(ctx))
+	descUser.RegisterUserV1Server(app.grpcServer, app.serviceProvider.UserImplementation(ctx))
+	descAuth.RegisterAuthV1Server(app.grpcServer, app.serviceProvider.AuthImplementation(ctx))
+	descAccess.RegisterAccessV1Server(app.grpcServer, app.serviceProvider.AccessImplementation(ctx))
 	return nil
 }
 
@@ -131,7 +135,7 @@ func (app *App) initHTTPServer(ctx context.Context) error {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	}
 
-	err := desc.RegisterUserV1HandlerFromEndpoint(ctx, mux, app.serviceProvider.GRPCConfig().Address(), opts)
+	err := descUser.RegisterUserV1HandlerFromEndpoint(ctx, mux, app.serviceProvider.GRPCConfig().Address(), opts)
 	if err != nil {
 		return err
 	}
