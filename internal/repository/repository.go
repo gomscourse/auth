@@ -15,3 +15,7 @@ type UserRepository interface {
 
 	CreateLog(ctx context.Context, action, model string, modelId int64, loggedQ *db.Query) error
 }
+
+type AccessRepository interface {
+	GetRuleByEndpoint(ctx context.Context, endpoint string) ([]*model.AccessRule, *db.Query, error)
+}
