@@ -5,6 +5,9 @@ alter table auth_user
 
 alter table auth_user
     add password_hash text;
+
+create unique index auth_user__username
+    on auth_user (username);
 -- +goose StatementEnd
 
 -- +goose Down
@@ -14,4 +17,6 @@ alter table auth_user
 
 alter table auth_user
     drop column password_hash;
+
+drop index auth_user__username;
 -- +goose StatementEnd

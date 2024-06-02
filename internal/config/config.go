@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/joho/godotenv"
+	"time"
 )
 
 func Load() error {
@@ -15,6 +16,13 @@ func Load() error {
 
 type GRPCConfig interface {
 	Address() string
+}
+
+type JWTConfig interface {
+	RefreshTokenSecret() string
+	AccessTokenSecret() string
+	RefreshTokenLifetime() time.Duration
+	AccessTokenLifetime() time.Duration
 }
 
 type PGConfig interface {

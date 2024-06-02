@@ -5,16 +5,19 @@ go 1.22.0
 require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/envoyproxy/protoc-gen-validate v1.0.4
 	github.com/gojuno/minimock/v3 v3.3.6
 	github.com/gomscourse/common v0.0.0-20240417054442-2f5e81487a79
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.19.1
 	github.com/jackc/pgx/v4 v4.18.2
 	github.com/joho/godotenv v1.5.1
+	github.com/olezhek28/microservices_course/week_6/jwt v0.0.0-20240502112600-80a9e038a7c2
 	github.com/pkg/errors v0.9.1
 	github.com/rakyll/statik v0.1.7
 	github.com/rs/cors v1.10.1
 	github.com/stretchr/testify v1.9.0
+	golang.org/x/crypto v0.21.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20240125205218-1f4bbc51befe
 	google.golang.org/grpc v1.62.1
 	google.golang.org/protobuf v1.33.0
@@ -36,7 +39,6 @@ require (
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
-	golang.org/x/crypto v0.21.0 // indirect
 	golang.org/x/net v0.22.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect

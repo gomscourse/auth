@@ -7,11 +7,12 @@ import (
 
 func ToUserFromRepo(user *modelRepo.User) *model.User {
 	return &model.User{
-		ID:        user.ID,
-		Name:      user.Username,
-		Email:     user.Email,
-		Role:      user.Role,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
+		ID:           user.ID,
+		Username:     user.Username,
+		PasswordHash: user.PasswordHash,
+		Email:        user.Email,
+		Role:         user.Role,
+		CreatedAt:    user.CreatedAt,
+		UpdatedAt:    user.UpdatedAt,
 	}
 }

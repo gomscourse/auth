@@ -82,10 +82,18 @@ func (r *repo) Create(ctx context.Context, info *model.UserCreateInfo) (int64, *
 }
 
 func (r *repo) Get(ctx context.Context, id int64) (*model.User, *db.Query, error) {
+	return r.GetOneByColumn(ctx, idColumn, id)
+}
+
+func (r *repo) GetByUsername(ctx context.Context, username string) (*model.User, *db.Query, error) {
+	return r.GetOneByColumn(ctx, usernameColumn, username)
+}
+
+func (r *repo) GetOneByColumn(ctx context.Context, column string, value any) (*model.User, *db.Query, error) {
 	builderSelect := sq.Select(idColumn, usernameColumn, emailColumn, roleColumn, createdAtColumn, updatedAtColumn).
 		From(tableName).
 		PlaceholderFormat(sq.Dollar).
-		Where(sq.Eq{idColumn: id}).
+		Where(sq.Eq{column: value}).
 		Limit(1)
 
 	query, args, err := builderSelect.ToSql()
@@ -94,7 +102,7 @@ func (r *repo) Get(ctx context.Context, id int64) (*model.User, *db.Query, error
 	}
 
 	q := db.Query{
-		Name:     "get_user_query",
+		Name:     fmt.Sprintf("get_user_by_%s_query", column),
 		QueryRow: query,
 	}
 
@@ -102,7 +110,7 @@ func (r *repo) Get(ctx context.Context, id int64) (*model.User, *db.Query, error
 	err = r.db.DB().ScanOneContext(ctx, &user, q, args...)
 
 	if errors.Is(err, pgx.ErrNoRows) {
-		return &model.User{}, nil, fmt.Errorf("user with id %d not found", id)
+		return &model.User{}, nil, fmt.Errorf("user with %s %v not found", column, value)
 	}
 
 	if err != nil {
