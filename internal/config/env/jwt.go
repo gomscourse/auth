@@ -50,5 +50,7 @@ func NewJWTConfig() (config.JWTConfig, error) {
 	return &jwtConfig{
 		refreshTokenSecret: refreshSecret,
 		accessTokenSecret:  accessSecret,
+		refreshLifetime:    60 * time.Minute,
+		accessLifetime:     10 * time.Minute,
 	}, nil
 }

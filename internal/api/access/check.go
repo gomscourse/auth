@@ -6,7 +6,10 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-func (i *Implementation) Check(context.Context, *desc.CheckRequest) (*emptypb.Empty, error) {
-
-	return nil, nil
+func (i *Implementation) Check(ctx context.Context, req *desc.CheckRequest) (*emptypb.Empty, error) {
+	err := i.accessService.Check(ctx, req.GetEndpointAddress())
+	if err != nil {
+		return nil, err
+	}
+	return &emptypb.Empty{}, nil
 }

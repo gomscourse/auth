@@ -32,7 +32,7 @@ func (r *repo) GetRuleByEndpoint(ctx context.Context, endpoint string) ([]*model
 	builderSelect := sq.Select(roleColumn).
 		From(tableName).
 		PlaceholderFormat(sq.Dollar).
-		Where(sq.Eq{endpointColumn: endpointColumn})
+		Where(sq.Eq{endpointColumn: endpoint})
 
 	query, args, err := builderSelect.ToSql()
 	if err != nil {
@@ -55,7 +55,7 @@ func (r *repo) GetRuleByEndpoint(ctx context.Context, endpoint string) ([]*model
 		return nil, nil, fmt.Errorf("failed to get rules for endpoint %s: %w", endpoint, err)
 	}
 
-	result := make([]*model.AccessRule, len(rules))
+	result := make([]*model.AccessRule, 0, len(rules))
 
 	for _, rule := range rules {
 		result = append(result, converter.ToAccessRuleFromRepo(rule))

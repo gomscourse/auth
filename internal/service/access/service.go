@@ -12,6 +12,10 @@ type serv struct {
 	jwtConfig  config.JWTConfig
 }
 
-func NewService(userRepository repository.UserRepository, jwtConfig config.JWTConfig) service.AccessService {
-	return &serv{userRepo: userRepository, jwtConfig: jwtConfig}
+func NewService(
+	userRepository repository.UserRepository,
+	accessRepository repository.AccessRepository,
+	jwtConfig config.JWTConfig,
+) service.AccessService {
+	return &serv{userRepo: userRepository, accessRepo: accessRepository, jwtConfig: jwtConfig}
 }

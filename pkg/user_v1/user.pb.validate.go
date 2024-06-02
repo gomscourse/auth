@@ -57,7 +57,7 @@ func (m *UserCreateInfo) validate(all bool) error {
 
 	var errors []error
 
-	if l := utf8.RuneCountInString(m.GetName()); l < 3 || l > 50 {
+	if l := utf8.RuneCountInString(m.GetUsername()); l < 3 || l > 50 {
 		err := UserCreateInfoValidationError{
 			field:  "Username",
 			reason: "value length must be between 3 and 50 runes, inclusive",
@@ -401,7 +401,7 @@ func (m *UpdateUserInfo) validate(all bool) error {
 	var errors []error
 
 	if all {
-		switch v := interface{}(m.GetName()).(type) {
+		switch v := interface{}(m.GetUsername()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, UpdateUserInfoValidationError{
@@ -419,7 +419,7 @@ func (m *UpdateUserInfo) validate(all bool) error {
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetName()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetUsername()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return UpdateUserInfoValidationError{
 				field:  "Username",

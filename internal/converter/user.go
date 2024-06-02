@@ -14,7 +14,7 @@ func ToUserFromService(user *model.User) *desc.User {
 
 	return &desc.User{
 		Id:        user.ID,
-		Name:      user.Username,
+		Username:  user.Username,
 		Email:     user.Email,
 		Role:      desc.Role(user.Role),
 		CreatedAt: timestamppb.New(user.CreatedAt),
@@ -24,7 +24,7 @@ func ToUserFromService(user *model.User) *desc.User {
 
 func ToUserCreateInfoFromDesc(info *desc.UserCreateInfo) *model.UserCreateInfo {
 	return &model.UserCreateInfo{
-		Name:            info.GetName(),
+		Name:            info.GetUsername(),
 		Email:           info.GetEmail(),
 		Password:        info.GetPassword(),
 		PasswordConfirm: info.GetPasswordConfirm(),
@@ -35,7 +35,7 @@ func ToUserCreateInfoFromDesc(info *desc.UserCreateInfo) *model.UserCreateInfo {
 func ToUserUpdateInfoFromDesc(info *desc.UpdateUserInfo, id int64) *model.UserUpdateInfo {
 	return &model.UserUpdateInfo{
 		ID:    id,
-		Name:  info.GetName().GetValue(),
+		Name:  info.GetUsername().GetValue(),
 		Email: info.GetEmail().GetValue(),
 	}
 }

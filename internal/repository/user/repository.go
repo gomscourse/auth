@@ -90,7 +90,15 @@ func (r *repo) GetByUsername(ctx context.Context, username string) (*model.User,
 }
 
 func (r *repo) GetOneByColumn(ctx context.Context, column string, value any) (*model.User, *db.Query, error) {
-	builderSelect := sq.Select(idColumn, usernameColumn, emailColumn, roleColumn, createdAtColumn, updatedAtColumn).
+	builderSelect := sq.Select(
+		idColumn,
+		usernameColumn,
+		passwordHashColumn,
+		emailColumn,
+		roleColumn,
+		createdAtColumn,
+		updatedAtColumn,
+	).
 		From(tableName).
 		PlaceholderFormat(sq.Dollar).
 		Where(sq.Eq{column: value}).

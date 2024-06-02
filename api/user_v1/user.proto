@@ -66,7 +66,7 @@ enum Role {
 }
 
 message UserCreateInfo {
-  string name = 1 [(validate.rules).string = {min_len: 3, max_len: 50}];
+  string username = 1 [(validate.rules).string = {min_len: 3, max_len: 50}];
   string email = 2 [(validate.rules).string.email = true];
   string password = 3;
   string password_confirm = 4;
@@ -75,7 +75,7 @@ message UserCreateInfo {
 
 message User {
   int64 id = 1;
-  string name = 2;
+  string username = 2;
   string email = 3;
   Role role = 4;
   google.protobuf.Timestamp created_at = 5;
@@ -83,7 +83,7 @@ message User {
 }
 
 message UpdateUserInfo {
-  google.protobuf.StringValue name = 1;
+  google.protobuf.StringValue username = 1;
   google.protobuf.StringValue email = 2;
 }
 

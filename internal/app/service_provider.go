@@ -8,6 +8,7 @@ import (
 	"github.com/gomscourse/auth/internal/config"
 	"github.com/gomscourse/auth/internal/config/env"
 	"github.com/gomscourse/auth/internal/repository"
+	accessRepo "github.com/gomscourse/auth/internal/repository/access"
 	userRepo "github.com/gomscourse/auth/internal/repository/user"
 	"github.com/gomscourse/auth/internal/service"
 	accessService "github.com/gomscourse/auth/internal/service/access"
@@ -30,6 +31,7 @@ type serviceProvider struct {
 	dbClient             db.Client
 	txManager            db.TxManager
 	userRepository       repository.UserRepository
+	accessRepository     repository.AccessRepository
 	userService          service.UserService
 	authService          service.AuthService
 	accessService        service.AccessService
@@ -143,6 +145,14 @@ func (sp *serviceProvider) UserRepository(ctx context.Context) repository.UserRe
 	return sp.userRepository
 }
 
+func (sp *serviceProvider) AccessRepository(ctx context.Context) repository.AccessRepository {
+	if sp.accessRepository == nil {
+		sp.accessRepository = accessRepo.NewRepository(sp.DbClient(ctx))
+	}
+
+	return sp.accessRepository
+}
+
 func (sp *serviceProvider) UserService(ctx context.Context) service.UserService {
 	if sp.userService == nil {
 		sp.userService = userService.NewService(sp.UserRepository(ctx), sp.TxManager(ctx))
@@ -161,7 +171,7 @@ func (sp *serviceProvider) AuthService(ctx context.Context) service.AuthService 
 
 func (sp *serviceProvider) AccessService(ctx context.Context) service.AccessService {
 	if sp.accessService == nil {
-		sp.accessService = accessService.NewService(sp.UserRepository(ctx), sp.JWTConfig())
+		sp.accessService = accessService.NewService(sp.UserRepository(ctx), sp.AccessRepository(ctx), sp.JWTConfig())
 	}
 
 	return sp.accessService
