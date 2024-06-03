@@ -13,6 +13,7 @@ import (
 	"github.com/rakyll/statik/fs"
 	"github.com/rs/cors"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 	"io"
@@ -115,8 +116,14 @@ func (app *App) initServiceProvider(_ context.Context) error {
 }
 
 func (app *App) initGRPCServer(ctx context.Context) error {
+	creds, err := credentials.NewServerTLSFromFile("service.pem", "service.key")
+	if err != nil {
+		log.Fatalf("failed to load TLS keys: %v", err)
+	}
+
 	app.grpcServer = grpc.NewServer(
-		grpc.Creds(insecure.NewCredentials()),
+		grpc.Creds(creds),
+		//grpc.Creds(insecure.NewCredentials()),
 		grpc.UnaryInterceptor(interceptor.ValidateInterceptor),
 	)
 

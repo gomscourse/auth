@@ -22,6 +22,14 @@ get-deps:
 migrate:
 	bin/goose -dir "migrations" postgres "host=localhost port=54321 dbname=auth user=auth-user password=auth-password sslmode=disable" up -v
 
+gen-cert:
+	openssl genrsa -out ca.key 4096
+	openssl req -new -x509 -key ca.key -sha256 -subj "/C=US/ST=NJ/O=CA, Inc." -days 365 -out ca.cert
+	openssl genrsa -out service.key 4096
+	openssl req -new -key service.key -out service.csr -config certificate.conf
+	openssl x509 -req -in service.csr -CA ca.cert -CAkey ca.key -CAcreateserial \
+    		-out service.pem -days 365 -sha256 -extfile certificate.conf -extensions req_ext
+
 generate:
 	mkdir -p pkg/swagger
 	make generate-user-api
