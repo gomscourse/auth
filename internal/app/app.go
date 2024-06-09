@@ -9,7 +9,10 @@ import (
 	descUser "github.com/gomscourse/auth/pkg/user_v1"
 	_ "github.com/gomscourse/auth/statik"
 	"github.com/gomscourse/common/pkg/closer"
+	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
+	"github.com/opentracing/opentracing-go"
 	"github.com/rakyll/statik/fs"
 	"github.com/rs/cors"
 	"google.golang.org/grpc"
@@ -124,7 +127,12 @@ func (app *App) initGRPCServer(ctx context.Context) error {
 	app.grpcServer = grpc.NewServer(
 		grpc.Creds(creds),
 		//grpc.Creds(insecure.NewCredentials()),
-		grpc.UnaryInterceptor(interceptor.ValidateInterceptor),
+		grpc.UnaryInterceptor(
+			grpcMiddleware.ChainUnaryServer(
+				otgrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer()),
+				interceptor.ValidateInterceptor,
+			),
+		),
 	)
 
 	reflection.Register(app.grpcServer)
