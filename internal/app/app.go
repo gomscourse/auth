@@ -9,6 +9,7 @@ import (
 	descUser "github.com/gomscourse/auth/pkg/user_v1"
 	_ "github.com/gomscourse/auth/statik"
 	"github.com/gomscourse/common/pkg/closer"
+	"github.com/gomscourse/common/pkg/tracing"
 	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
@@ -86,6 +87,9 @@ func (app *App) Run() error {
 
 func (app *App) initDeps(ctx context.Context) error {
 	funcs := []func(ctx context.Context) error{
+		func(ctx context.Context) error {
+			return tracing.Init("auth_service")
+		},
 		app.initConfig,
 		app.initServiceProvider,
 		app.initGRPCServer,

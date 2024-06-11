@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"github.com/gomscourse/auth/internal/utils"
+	"github.com/opentracing/opentracing-go"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/metadata"
 	"strings"
@@ -11,6 +12,9 @@ import (
 const authPrefix = "Bearer "
 
 func (s *serv) Check(ctx context.Context, endpointAddress string) error {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "checking endpoint address")
+	span.SetTag("endpoint", endpointAddress)
+	defer span.Finish()
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return errors.New("metadata is not provided")
