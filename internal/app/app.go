@@ -9,6 +9,7 @@ import (
 	descUser "github.com/gomscourse/auth/pkg/user_v1"
 	_ "github.com/gomscourse/auth/statik"
 	"github.com/gomscourse/common/pkg/closer"
+	"github.com/gomscourse/common/pkg/rate_limiter"
 	"github.com/gomscourse/common/pkg/tracing"
 	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -128,6 +129,9 @@ func (app *App) initGRPCServer(ctx context.Context) error {
 		log.Fatalf("failed to load TLS keys: %v", err)
 	}
 
+	limit, period := app.serviceProvider.GRPCConfig().RateLimit()
+	rateLimiter := rate_limiter.NewTokenBucketLimiter(ctx, limit, period)
+
 	app.grpcServer = grpc.NewServer(
 		grpc.Creds(creds),
 		//grpc.Creds(insecure.NewCredentials()),
@@ -135,6 +139,7 @@ func (app *App) initGRPCServer(ctx context.Context) error {
 			grpcMiddleware.ChainUnaryServer(
 				otgrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer()),
 				interceptor.ValidateInterceptor,
+				interceptor.NewRateLimiterInterceptor(rateLimiter).Unary,
 			),
 		),
 	)

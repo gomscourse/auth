@@ -16,6 +16,7 @@ func Load() error {
 
 type GRPCConfig interface {
 	Address() string
+	RateLimit() (int, time.Duration)
 }
 
 type JWTConfig interface {
