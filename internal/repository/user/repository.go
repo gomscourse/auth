@@ -73,7 +73,7 @@ func (r *repo) Create(ctx context.Context, info *model.UserCreateInfo) (int64, *
 	}
 
 	var userID int64
-	err = r.db.DB().QueryRowContext(ctx, q, args...).Scan(&userID)
+	err = r.db.DB().QueryRowContextScan(ctx, &userID, q, args...)
 	if err != nil {
 		return 0, nil, fmt.Errorf("failed to insert user: %w", err)
 	}
