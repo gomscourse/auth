@@ -140,6 +140,7 @@ func (app *App) initGRPCServer(ctx context.Context) error {
 				otgrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer()),
 				interceptor.ValidateInterceptor,
 				interceptor.NewRateLimiterInterceptor(rateLimiter).Unary,
+				interceptor.ErrorsInterceptor,
 			),
 		),
 	)
