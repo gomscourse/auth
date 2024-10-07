@@ -5,6 +5,7 @@ import (
 	"github.com/gomscourse/auth/internal/utils"
 	"github.com/gomscourse/common/pkg/sys"
 	"github.com/gomscourse/common/pkg/sys/codes"
+	"github.com/gomscourse/common/pkg/sys/messages"
 	"github.com/opentracing/opentracing-go"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/metadata"
@@ -35,7 +36,7 @@ func (s *serv) Check(ctx context.Context, endpointAddress string) error {
 
 	claims, err := utils.VerifyToken(accessToken, []byte(s.jwtConfig.AccessTokenSecret()))
 	if err != nil {
-		return errors.New("access token is invalid")
+		return sys.NewCommonError(messages.AccessTokenInvalid, codes.PermissionDenied)
 	}
 
 	accessRules, _, err := s.accessRepo.GetRuleByEndpoint(ctx, endpointAddress)
