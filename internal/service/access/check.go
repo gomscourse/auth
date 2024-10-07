@@ -3,6 +3,8 @@ package auth
 import (
 	"context"
 	"github.com/gomscourse/auth/internal/utils"
+	"github.com/gomscourse/common/pkg/sys"
+	"github.com/gomscourse/common/pkg/sys/codes"
 	"github.com/opentracing/opentracing-go"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/metadata"
@@ -55,7 +57,7 @@ func (s *serv) Check(ctx context.Context, endpointAddress string) error {
 	}
 
 	if !accessGranted {
-		return errors.New("access denied")
+		return sys.NewCommonError("access denied", codes.PermissionDenied)
 	}
 
 	return nil
