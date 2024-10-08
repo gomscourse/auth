@@ -4,13 +4,15 @@ import (
 	"context"
 	"github.com/gomscourse/auth/internal/model"
 	"github.com/gomscourse/auth/internal/utils"
-	"github.com/pkg/errors"
+	"github.com/gomscourse/common/pkg/sys"
+	"github.com/gomscourse/common/pkg/sys/codes"
+	"github.com/gomscourse/common/pkg/sys/messages"
 )
 
 func (s *serv) GetAccessToken(ctx context.Context, refreshToken string) (string, error) {
 	claims, err := utils.VerifyToken(refreshToken, []byte(s.jwtConfig.RefreshTokenSecret()))
 	if err != nil {
-		return "", errors.New("Invalid refresh token")
+		return "", sys.NewCommonError(messages.RefreshTokenInvalid, codes.PermissionDenied)
 	}
 
 	user, _, err := s.userRepo.GetByUsername(ctx, claims.Username)
