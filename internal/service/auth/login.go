@@ -4,7 +4,8 @@ import (
 	"context"
 	"github.com/gomscourse/auth/internal/model"
 	"github.com/gomscourse/auth/internal/utils"
-	"github.com/pkg/errors"
+	"github.com/gomscourse/common/pkg/sys"
+	"github.com/gomscourse/common/pkg/sys/codes"
 )
 
 func (s *serv) Login(ctx context.Context, username, password string) (string, error) {
@@ -15,7 +16,7 @@ func (s *serv) Login(ctx context.Context, username, password string) (string, er
 	}
 	// Сверяем хэши пароля
 	if !utils.VerifyPassword(user.PasswordHash, password) {
-		return "", errors.New("passwords are not equal")
+		return "", sys.NewCommonError("Invalid login or password", codes.Unauthenticated)
 	}
 
 	refreshToken, err := utils.GenerateToken(
@@ -28,7 +29,7 @@ func (s *serv) Login(ctx context.Context, username, password string) (string, er
 	)
 
 	if err != nil {
-		return "", errors.New("failed to generate token")
+		return "", sys.NewCommonError("failed to generate token", codes.Unauthenticated)
 	}
 
 	return refreshToken, nil

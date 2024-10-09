@@ -9,7 +9,7 @@ import (
 func (i *Implementation) Login(ctx context.Context, req *desc.LoginRequest) (*desc.LoginResponse, error) {
 	refreshToken, err := i.authService.Login(ctx, req.GetUsername(), req.GetPassword())
 	if err != nil {
-		return nil, errors.New("failed to log in")
+		return nil, errors.Wrap(err, "failed to log in")
 	}
 
 	return &desc.LoginResponse{
