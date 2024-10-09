@@ -10,6 +10,7 @@ type UserService interface {
 	Get(ctx context.Context, id int64) (*model.User, error)
 	Update(ctx context.Context, info *model.UserUpdateInfo) error
 	Delete(ctx context.Context, id int64) error
+	CheckUsersExistence(ctx context.Context, usernames []string) error
 }
 
 type AuthService interface {

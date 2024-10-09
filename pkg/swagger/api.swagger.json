@@ -25,6 +25,39 @@
     "application/json"
   ],
   "paths": {
+    "/check-users-existence/v1": {
+      "post": {
+        "operationId": "UserV1_CheckUsersExistence",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/user_v1CheckUsersExistenceRequest"
+            }
+          }
+        ],
+        "tags": [
+          "UserV1"
+        ]
+      }
+    },
     "/user/v1": {
       "get": {
         "summary": "Получить пользователя по ID",
@@ -177,6 +210,17 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "user_v1CheckUsersExistenceRequest": {
+      "type": "object",
+      "properties": {
+        "usernames": {
+          "type": "array",
+          "items": {
+            "type": "string"
           }
         }
       }

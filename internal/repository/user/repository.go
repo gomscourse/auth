@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gomscourse/auth/internal/model"
@@ -10,13 +9,18 @@ import (
 	"github.com/gomscourse/auth/internal/repository/user/converter"
 	repoModel "github.com/gomscourse/auth/internal/repository/user/model"
 	"github.com/gomscourse/common/pkg/db"
+	"github.com/gomscourse/common/pkg/sys"
+	"github.com/gomscourse/common/pkg/sys/codes"
 	"github.com/jackc/pgx/v4"
+	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
+	"slices"
+	"strings"
 	"time"
 )
 
 const (
-	tableName = "auth_user"
+	usersTable = "auth_user"
 
 	idColumn           = "id"
 	usernameColumn     = "username"
@@ -56,7 +60,7 @@ func (r *repo) Create(ctx context.Context, info *model.UserCreateInfo) (int64, *
 		return 0, nil, fmt.Errorf("failed to generate password hash: %w", err)
 	}
 
-	builderInsert := sq.Insert(tableName).
+	builderInsert := sq.Insert(usersTable).
 		PlaceholderFormat(sq.Dollar).
 		Columns(usernameColumn, passwordHashColumn, emailColumn, roleColumn).
 		Values(info.Name, string(passwordHash), info.Email, info.Role).
@@ -99,7 +103,7 @@ func (r *repo) GetOneByColumn(ctx context.Context, column string, value any) (*m
 		createdAtColumn,
 		updatedAtColumn,
 	).
-		From(tableName).
+		From(usersTable).
 		PlaceholderFormat(sq.Dollar).
 		Where(sq.Eq{column: value}).
 		Limit(1)
@@ -130,7 +134,7 @@ func (r *repo) GetOneByColumn(ctx context.Context, column string, value any) (*m
 
 func (r *repo) Update(ctx context.Context, info *model.UserUpdateInfo) (*db.Query, error) {
 
-	buildUpdate := sq.Update(tableName).
+	buildUpdate := sq.Update(usersTable).
 		PlaceholderFormat(sq.Dollar).
 		Set(usernameColumn, info.Name).
 		Set(emailColumn, info.Email).
@@ -156,7 +160,7 @@ func (r *repo) Update(ctx context.Context, info *model.UserUpdateInfo) (*db.Quer
 }
 
 func (r *repo) Delete(ctx context.Context, id int64) (*db.Query, error) {
-	deleteBuilder := sq.Delete(tableName).PlaceholderFormat(sq.Dollar).Where(sq.Eq{idColumn: id})
+	deleteBuilder := sq.Delete(usersTable).PlaceholderFormat(sq.Dollar).Where(sq.Eq{idColumn: id})
 	query, args, err := deleteBuilder.ToSql()
 
 	q := db.Query{
@@ -193,4 +197,47 @@ func (r *repo) CreateLog(ctx context.Context, action, model string, modelId int6
 	}
 
 	return nil
+}
+
+func (r *repo) CheckUsersExistence(ctx context.Context, usernames []string) (*db.Query, error) {
+	var users []string
+
+	querySelect := sq.Select(usernameColumn).
+		PlaceholderFormat(sq.Dollar).
+		From(usersTable).
+		Where(sq.Eq{usernameColumn: usernames})
+
+	query, args, err := querySelect.ToSql()
+	if err != nil {
+		return nil, errors.Errorf("failed to build query: %s", err)
+	}
+
+	q := db.Query{
+		Name:     "select users by names",
+		QueryRow: query,
+	}
+
+	err = r.db.DB().ScanAllContext(ctx, &users, q, args...)
+	if err != nil {
+		return &q, errors.Errorf("failed to get users: %s", err)
+	}
+
+	requestedCount := len(usernames)
+	actualCount := len(users)
+	if actualCount < requestedCount {
+		absent := make([]string, 0, requestedCount-actualCount)
+
+		for _, u := range usernames {
+			if !slices.Contains(users, u) {
+				absent = append(absent, u)
+			}
+		}
+
+		return &q, sys.NewCommonError(
+			fmt.Sprintf("The following users do not exist: %s", strings.Join(absent, ",")),
+			codes.InvalidArgument,
+		)
+	}
+
+	return &q, nil
 }

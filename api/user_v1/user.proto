@@ -58,6 +58,13 @@ service UserV1 {
       delete: "/user/v1",
     };
   };
+
+  rpc CheckUsersExistence(CheckUsersExistenceRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/check-users-existence/v1",
+      body: "*"
+    };
+  };
 }
 
 enum Role {
@@ -112,5 +119,6 @@ message DeleteRequest {
   int64 id = 1;
 }
 
-
-
+message CheckUsersExistenceRequest {
+  repeated string usernames = 1;
+}

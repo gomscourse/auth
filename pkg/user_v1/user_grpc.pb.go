@@ -31,6 +31,7 @@ type UserV1Client interface {
 	Update(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// Удалить пользователя
 	Delete(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	CheckUsersExistence(ctx context.Context, in *CheckUsersExistenceRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type userV1Client struct {
@@ -77,6 +78,15 @@ func (c *userV1Client) Delete(ctx context.Context, in *DeleteRequest, opts ...gr
 	return out, nil
 }
 
+func (c *userV1Client) CheckUsersExistence(ctx context.Context, in *CheckUsersExistenceRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/user_v1.UserV1/CheckUsersExistence", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserV1Server is the server API for UserV1 service.
 // All implementations must embed UnimplementedUserV1Server
 // for forward compatibility
@@ -89,6 +99,7 @@ type UserV1Server interface {
 	Update(context.Context, *UpdateRequest) (*emptypb.Empty, error)
 	// Удалить пользователя
 	Delete(context.Context, *DeleteRequest) (*emptypb.Empty, error)
+	CheckUsersExistence(context.Context, *CheckUsersExistenceRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedUserV1Server()
 }
 
@@ -107,6 +118,9 @@ func (UnimplementedUserV1Server) Update(context.Context, *UpdateRequest) (*empty
 }
 func (UnimplementedUserV1Server) Delete(context.Context, *DeleteRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedUserV1Server) CheckUsersExistence(context.Context, *CheckUsersExistenceRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckUsersExistence not implemented")
 }
 func (UnimplementedUserV1Server) mustEmbedUnimplementedUserV1Server() {}
 
@@ -193,6 +207,24 @@ func _UserV1_Delete_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserV1_CheckUsersExistence_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckUsersExistenceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserV1Server).CheckUsersExistence(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/user_v1.UserV1/CheckUsersExistence",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserV1Server).CheckUsersExistence(ctx, req.(*CheckUsersExistenceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserV1_ServiceDesc is the grpc.ServiceDesc for UserV1 service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -215,6 +247,10 @@ var UserV1_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Delete",
 			Handler:    _UserV1_Delete_Handler,
+		},
+		{
+			MethodName: "CheckUsersExistence",
+			Handler:    _UserV1_CheckUsersExistence_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

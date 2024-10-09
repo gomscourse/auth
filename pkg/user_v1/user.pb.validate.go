@@ -1228,3 +1228,105 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = DeleteRequestValidationError{}
+
+// Validate checks the field values on CheckUsersExistenceRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CheckUsersExistenceRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CheckUsersExistenceRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CheckUsersExistenceRequestMultiError, or nil if none found.
+func (m *CheckUsersExistenceRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CheckUsersExistenceRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return CheckUsersExistenceRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// CheckUsersExistenceRequestMultiError is an error wrapping multiple
+// validation errors returned by CheckUsersExistenceRequest.ValidateAll() if
+// the designated constraints aren't met.
+type CheckUsersExistenceRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CheckUsersExistenceRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CheckUsersExistenceRequestMultiError) AllErrors() []error { return m }
+
+// CheckUsersExistenceRequestValidationError is the validation error returned
+// by CheckUsersExistenceRequest.Validate if the designated constraints aren't met.
+type CheckUsersExistenceRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CheckUsersExistenceRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CheckUsersExistenceRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CheckUsersExistenceRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CheckUsersExistenceRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CheckUsersExistenceRequestValidationError) ErrorName() string {
+	return "CheckUsersExistenceRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CheckUsersExistenceRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCheckUsersExistenceRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CheckUsersExistenceRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CheckUsersExistenceRequestValidationError{}

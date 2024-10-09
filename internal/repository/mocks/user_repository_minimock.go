@@ -20,6 +20,12 @@ type UserRepositoryMock struct {
 	t          minimock.Tester
 	finishOnce sync.Once
 
+	funcCheckUsersExistence          func(ctx context.Context, usernames []string) (qp1 *db.Query, err error)
+	inspectFuncCheckUsersExistence   func(ctx context.Context, usernames []string)
+	afterCheckUsersExistenceCounter  uint64
+	beforeCheckUsersExistenceCounter uint64
+	CheckUsersExistenceMock          mUserRepositoryMockCheckUsersExistence
+
 	funcCreate          func(ctx context.Context, info *model.UserCreateInfo) (i1 int64, qp1 *db.Query, err error)
 	inspectFuncCreate   func(ctx context.Context, info *model.UserCreateInfo)
 	afterCreateCounter  uint64
@@ -65,6 +71,9 @@ func NewUserRepositoryMock(t minimock.Tester) *UserRepositoryMock {
 		controller.RegisterMocker(m)
 	}
 
+	m.CheckUsersExistenceMock = mUserRepositoryMockCheckUsersExistence{mock: m}
+	m.CheckUsersExistenceMock.callArgs = []*UserRepositoryMockCheckUsersExistenceParams{}
+
 	m.CreateMock = mUserRepositoryMockCreate{mock: m}
 	m.CreateMock.callArgs = []*UserRepositoryMockCreateParams{}
 
@@ -86,6 +95,223 @@ func NewUserRepositoryMock(t minimock.Tester) *UserRepositoryMock {
 	t.Cleanup(m.MinimockFinish)
 
 	return m
+}
+
+type mUserRepositoryMockCheckUsersExistence struct {
+	mock               *UserRepositoryMock
+	defaultExpectation *UserRepositoryMockCheckUsersExistenceExpectation
+	expectations       []*UserRepositoryMockCheckUsersExistenceExpectation
+
+	callArgs []*UserRepositoryMockCheckUsersExistenceParams
+	mutex    sync.RWMutex
+}
+
+// UserRepositoryMockCheckUsersExistenceExpectation specifies expectation struct of the UserRepository.CheckUsersExistence
+type UserRepositoryMockCheckUsersExistenceExpectation struct {
+	mock    *UserRepositoryMock
+	params  *UserRepositoryMockCheckUsersExistenceParams
+	results *UserRepositoryMockCheckUsersExistenceResults
+	Counter uint64
+}
+
+// UserRepositoryMockCheckUsersExistenceParams contains parameters of the UserRepository.CheckUsersExistence
+type UserRepositoryMockCheckUsersExistenceParams struct {
+	ctx       context.Context
+	usernames []string
+}
+
+// UserRepositoryMockCheckUsersExistenceResults contains results of the UserRepository.CheckUsersExistence
+type UserRepositoryMockCheckUsersExistenceResults struct {
+	qp1 *db.Query
+	err error
+}
+
+// Expect sets up expected params for UserRepository.CheckUsersExistence
+func (mmCheckUsersExistence *mUserRepositoryMockCheckUsersExistence) Expect(ctx context.Context, usernames []string) *mUserRepositoryMockCheckUsersExistence {
+	if mmCheckUsersExistence.mock.funcCheckUsersExistence != nil {
+		mmCheckUsersExistence.mock.t.Fatalf("UserRepositoryMock.CheckUsersExistence mock is already set by Set")
+	}
+
+	if mmCheckUsersExistence.defaultExpectation == nil {
+		mmCheckUsersExistence.defaultExpectation = &UserRepositoryMockCheckUsersExistenceExpectation{}
+	}
+
+	mmCheckUsersExistence.defaultExpectation.params = &UserRepositoryMockCheckUsersExistenceParams{ctx, usernames}
+	for _, e := range mmCheckUsersExistence.expectations {
+		if minimock.Equal(e.params, mmCheckUsersExistence.defaultExpectation.params) {
+			mmCheckUsersExistence.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmCheckUsersExistence.defaultExpectation.params)
+		}
+	}
+
+	return mmCheckUsersExistence
+}
+
+// Inspect accepts an inspector function that has same arguments as the UserRepository.CheckUsersExistence
+func (mmCheckUsersExistence *mUserRepositoryMockCheckUsersExistence) Inspect(f func(ctx context.Context, usernames []string)) *mUserRepositoryMockCheckUsersExistence {
+	if mmCheckUsersExistence.mock.inspectFuncCheckUsersExistence != nil {
+		mmCheckUsersExistence.mock.t.Fatalf("Inspect function is already set for UserRepositoryMock.CheckUsersExistence")
+	}
+
+	mmCheckUsersExistence.mock.inspectFuncCheckUsersExistence = f
+
+	return mmCheckUsersExistence
+}
+
+// Return sets up results that will be returned by UserRepository.CheckUsersExistence
+func (mmCheckUsersExistence *mUserRepositoryMockCheckUsersExistence) Return(qp1 *db.Query, err error) *UserRepositoryMock {
+	if mmCheckUsersExistence.mock.funcCheckUsersExistence != nil {
+		mmCheckUsersExistence.mock.t.Fatalf("UserRepositoryMock.CheckUsersExistence mock is already set by Set")
+	}
+
+	if mmCheckUsersExistence.defaultExpectation == nil {
+		mmCheckUsersExistence.defaultExpectation = &UserRepositoryMockCheckUsersExistenceExpectation{mock: mmCheckUsersExistence.mock}
+	}
+	mmCheckUsersExistence.defaultExpectation.results = &UserRepositoryMockCheckUsersExistenceResults{qp1, err}
+	return mmCheckUsersExistence.mock
+}
+
+// Set uses given function f to mock the UserRepository.CheckUsersExistence method
+func (mmCheckUsersExistence *mUserRepositoryMockCheckUsersExistence) Set(f func(ctx context.Context, usernames []string) (qp1 *db.Query, err error)) *UserRepositoryMock {
+	if mmCheckUsersExistence.defaultExpectation != nil {
+		mmCheckUsersExistence.mock.t.Fatalf("Default expectation is already set for the UserRepository.CheckUsersExistence method")
+	}
+
+	if len(mmCheckUsersExistence.expectations) > 0 {
+		mmCheckUsersExistence.mock.t.Fatalf("Some expectations are already set for the UserRepository.CheckUsersExistence method")
+	}
+
+	mmCheckUsersExistence.mock.funcCheckUsersExistence = f
+	return mmCheckUsersExistence.mock
+}
+
+// When sets expectation for the UserRepository.CheckUsersExistence which will trigger the result defined by the following
+// Then helper
+func (mmCheckUsersExistence *mUserRepositoryMockCheckUsersExistence) When(ctx context.Context, usernames []string) *UserRepositoryMockCheckUsersExistenceExpectation {
+	if mmCheckUsersExistence.mock.funcCheckUsersExistence != nil {
+		mmCheckUsersExistence.mock.t.Fatalf("UserRepositoryMock.CheckUsersExistence mock is already set by Set")
+	}
+
+	expectation := &UserRepositoryMockCheckUsersExistenceExpectation{
+		mock:   mmCheckUsersExistence.mock,
+		params: &UserRepositoryMockCheckUsersExistenceParams{ctx, usernames},
+	}
+	mmCheckUsersExistence.expectations = append(mmCheckUsersExistence.expectations, expectation)
+	return expectation
+}
+
+// Then sets up UserRepository.CheckUsersExistence return parameters for the expectation previously defined by the When method
+func (e *UserRepositoryMockCheckUsersExistenceExpectation) Then(qp1 *db.Query, err error) *UserRepositoryMock {
+	e.results = &UserRepositoryMockCheckUsersExistenceResults{qp1, err}
+	return e.mock
+}
+
+// CheckUsersExistence implements repository.UserRepository
+func (mmCheckUsersExistence *UserRepositoryMock) CheckUsersExistence(ctx context.Context, usernames []string) (qp1 *db.Query, err error) {
+	mm_atomic.AddUint64(&mmCheckUsersExistence.beforeCheckUsersExistenceCounter, 1)
+	defer mm_atomic.AddUint64(&mmCheckUsersExistence.afterCheckUsersExistenceCounter, 1)
+
+	if mmCheckUsersExistence.inspectFuncCheckUsersExistence != nil {
+		mmCheckUsersExistence.inspectFuncCheckUsersExistence(ctx, usernames)
+	}
+
+	mm_params := UserRepositoryMockCheckUsersExistenceParams{ctx, usernames}
+
+	// Record call args
+	mmCheckUsersExistence.CheckUsersExistenceMock.mutex.Lock()
+	mmCheckUsersExistence.CheckUsersExistenceMock.callArgs = append(mmCheckUsersExistence.CheckUsersExistenceMock.callArgs, &mm_params)
+	mmCheckUsersExistence.CheckUsersExistenceMock.mutex.Unlock()
+
+	for _, e := range mmCheckUsersExistence.CheckUsersExistenceMock.expectations {
+		if minimock.Equal(*e.params, mm_params) {
+			mm_atomic.AddUint64(&e.Counter, 1)
+			return e.results.qp1, e.results.err
+		}
+	}
+
+	if mmCheckUsersExistence.CheckUsersExistenceMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmCheckUsersExistence.CheckUsersExistenceMock.defaultExpectation.Counter, 1)
+		mm_want := mmCheckUsersExistence.CheckUsersExistenceMock.defaultExpectation.params
+		mm_got := UserRepositoryMockCheckUsersExistenceParams{ctx, usernames}
+		if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
+			mmCheckUsersExistence.t.Errorf("UserRepositoryMock.CheckUsersExistence got unexpected parameters, want: %#v, got: %#v%s\n", *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+		}
+
+		mm_results := mmCheckUsersExistence.CheckUsersExistenceMock.defaultExpectation.results
+		if mm_results == nil {
+			mmCheckUsersExistence.t.Fatal("No results are set for the UserRepositoryMock.CheckUsersExistence")
+		}
+		return (*mm_results).qp1, (*mm_results).err
+	}
+	if mmCheckUsersExistence.funcCheckUsersExistence != nil {
+		return mmCheckUsersExistence.funcCheckUsersExistence(ctx, usernames)
+	}
+	mmCheckUsersExistence.t.Fatalf("Unexpected call to UserRepositoryMock.CheckUsersExistence. %v %v", ctx, usernames)
+	return
+}
+
+// CheckUsersExistenceAfterCounter returns a count of finished UserRepositoryMock.CheckUsersExistence invocations
+func (mmCheckUsersExistence *UserRepositoryMock) CheckUsersExistenceAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmCheckUsersExistence.afterCheckUsersExistenceCounter)
+}
+
+// CheckUsersExistenceBeforeCounter returns a count of UserRepositoryMock.CheckUsersExistence invocations
+func (mmCheckUsersExistence *UserRepositoryMock) CheckUsersExistenceBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmCheckUsersExistence.beforeCheckUsersExistenceCounter)
+}
+
+// Calls returns a list of arguments used in each call to UserRepositoryMock.CheckUsersExistence.
+// The list is in the same order as the calls were made (i.e. recent calls have a higher index)
+func (mmCheckUsersExistence *mUserRepositoryMockCheckUsersExistence) Calls() []*UserRepositoryMockCheckUsersExistenceParams {
+	mmCheckUsersExistence.mutex.RLock()
+
+	argCopy := make([]*UserRepositoryMockCheckUsersExistenceParams, len(mmCheckUsersExistence.callArgs))
+	copy(argCopy, mmCheckUsersExistence.callArgs)
+
+	mmCheckUsersExistence.mutex.RUnlock()
+
+	return argCopy
+}
+
+// MinimockCheckUsersExistenceDone returns true if the count of the CheckUsersExistence invocations corresponds
+// the number of defined expectations
+func (m *UserRepositoryMock) MinimockCheckUsersExistenceDone() bool {
+	for _, e := range m.CheckUsersExistenceMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			return false
+		}
+	}
+
+	// if default expectation was set then invocations count should be greater than zero
+	if m.CheckUsersExistenceMock.defaultExpectation != nil && mm_atomic.LoadUint64(&m.afterCheckUsersExistenceCounter) < 1 {
+		return false
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcCheckUsersExistence != nil && mm_atomic.LoadUint64(&m.afterCheckUsersExistenceCounter) < 1 {
+		return false
+	}
+	return true
+}
+
+// MinimockCheckUsersExistenceInspect logs each unmet expectation
+func (m *UserRepositoryMock) MinimockCheckUsersExistenceInspect() {
+	for _, e := range m.CheckUsersExistenceMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			m.t.Errorf("Expected call to UserRepositoryMock.CheckUsersExistence with params: %#v", *e.params)
+		}
+	}
+
+	// if default expectation was set then invocations count should be greater than zero
+	if m.CheckUsersExistenceMock.defaultExpectation != nil && mm_atomic.LoadUint64(&m.afterCheckUsersExistenceCounter) < 1 {
+		if m.CheckUsersExistenceMock.defaultExpectation.params == nil {
+			m.t.Error("Expected call to UserRepositoryMock.CheckUsersExistence")
+		} else {
+			m.t.Errorf("Expected call to UserRepositoryMock.CheckUsersExistence with params: %#v", *m.CheckUsersExistenceMock.defaultExpectation.params)
+		}
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcCheckUsersExistence != nil && mm_atomic.LoadUint64(&m.afterCheckUsersExistenceCounter) < 1 {
+		m.t.Error("Expected call to UserRepositoryMock.CheckUsersExistence")
+	}
 }
 
 type mUserRepositoryMockCreate struct {
@@ -1399,6 +1625,8 @@ func (m *UserRepositoryMock) MinimockUpdateInspect() {
 func (m *UserRepositoryMock) MinimockFinish() {
 	m.finishOnce.Do(func() {
 		if !m.minimockDone() {
+			m.MinimockCheckUsersExistenceInspect()
+
 			m.MinimockCreateInspect()
 
 			m.MinimockCreateLogInspect()
@@ -1434,6 +1662,7 @@ func (m *UserRepositoryMock) MinimockWait(timeout mm_time.Duration) {
 func (m *UserRepositoryMock) minimockDone() bool {
 	done := true
 	return done &&
+		m.MinimockCheckUsersExistenceDone() &&
 		m.MinimockCreateDone() &&
 		m.MinimockCreateLogDone() &&
 		m.MinimockDeleteDone() &&
