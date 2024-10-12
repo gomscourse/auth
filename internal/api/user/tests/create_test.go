@@ -37,7 +37,7 @@ func TestCreate(t *testing.T) {
 
 		req = &desc.CreateRequest{
 			Info: &desc.UserCreateInfo{
-				Name:            name,
+				Username:        name,
 				Email:           email,
 				Password:        password,
 				PasswordConfirm: passwordConfirm,
