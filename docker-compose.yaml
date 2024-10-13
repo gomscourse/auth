@@ -12,6 +12,8 @@ services:
     entrypoint: ["/root/entrypoint.sh"]
     volumes:
       - ${SERVICE_PATH}/.env:/root/.env
+      - ${SERVICE_PATH}/service.key:/root/service.key
+      - ${SERVICE_PATH}/service.pem:/root/service.pem
     profiles:
       - server
   postgres:
